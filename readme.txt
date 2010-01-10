@@ -4,7 +4,7 @@ Donate link: http://atastypixel.com/blog/wordpress/plugins/twitter-image-host
 Tags: images,twitter,hosting
 Requires at least: 2.6
 Tested up to: 2.9
-Stable tag: 0.1
+Stable tag: 0.2
 
 Host Twitter images from your blog and keep your traffic, rather than using a service like Twitpic and losing your viewers.
 
@@ -103,7 +103,6 @@ Here's how:
 
 1. Create and open a new file in your site's webroot called ".htaccess". If there's one already there, just open that up and prepare to edit at the bottom.
 2. Add the following, replacing 'blog' with the real subdirectory under which Wordpress is installed:
-
         <IfModule mod_rewrite.c>
         RewriteEngine On
         RewriteBase /
@@ -115,14 +114,12 @@ Here's how:
         </IfModule>
 
   This will take any requests that:
-  
   * Are located in the web-root (start with a slash, followed by anything but a slash until the end)
   * Have a corresponding file within Twitter Image Host's content directory
-  
   Then, it'll rewrite the request silently to the real Twitter Image Host URL, without the viewer seeing.
-
 3. In Twitter Image Host settings, set the 'Override URL Prefix' option to 'http://your-site.com/'
 
 == Changes ==
 
+* 0.2: Proper support for trackbacks, comment feeds, fixed a bug which caused plugin to say Twitter was unavailable when the Twitter account has no direct messages
 * 0.1: Initial release

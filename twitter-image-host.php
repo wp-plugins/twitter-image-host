@@ -3,7 +3,7 @@
 Plugin Name: Twitter Image Host
 Plugin URI: http://atastypixel.com/wordpress/plugins/twitter-image-host
 Description: Host Twitter images from your blog and keep your traffic, rather than using a service like Twitpic and losing your viewers
-Version: 0.1
+Version: 0.2
 Author: Michael Tyson
 Author URI: http://atastypixel.com/blog
 */
@@ -88,7 +88,16 @@ function twitter_image_host_run() {
         exit;
     }
     
-    twitter_image_host_setup(preg_replace('/\.\.+/', '', basename($_SERVER['REQUEST_URI'])));
+    if ( !twitter_image_host_setup(preg_replace('/\.\.+/', '', basename($_SERVER['REQUEST_URI']))) ) {
+        if ( $_REQUEST['p'] ) {
+            // Try using the post id
+            twitter_image_host_setup(base_convert($_REQUEST['p'], 10, 36));
+        }
+    }
+    
+    if ( strstr($_SERVER['REQUEST_URI'], 'wp-trackback.php') !== false ) {
+        twitter_image_host_setup_state();
+    }
 }
 
 /**
@@ -99,6 +108,10 @@ function twitter_image_host_run() {
  * @since 0.1
  **/
 function twitter_image_host_server($command) {
+
+    foreach ( array("username", "password", "message", "title") as $var ) {
+        $_REQUEST[$var] = stripslashes($_REQUEST[$var]);
+    }
 
     if ( !$command ) {
         // No command: Assume this is a person navigating here and show them a form
@@ -133,11 +146,11 @@ function twitter_image_host_server($command) {
     $t = new twitter;
     $t->username = $_REQUEST["username"];
     $t->password = $_REQUEST["password"];
-    if ( !$t->directMessages() ) {
+    if ( $t->directMessages() === false ) {
         if ( $t->responseInfo['http_code'] == 401 ) {
             twitter_image_host_error(INVALID_USER_OR_PASS, 'Invalid username or password');
         } else {
-            twitter_image_host_error(TWITTER_OFFLINE, 'Twitter may be offline');
+            twitter_image_host_error(TWITTER_OFFLINE, "Twitter may be offline (".($t->responseInfo['http_code'] ? "response code ".$t->responseInfo['http_code'] : "couldn't connect").")");
         }
         return;
     }
@@ -225,10 +238,12 @@ function twitter_image_host_server($command) {
  * @since 0.1
  **/
 function twitter_image_host_setup($name) {
+    $name = strtolower($name);
+    
     if ( !$name || !($result=array_filter(glob(IMAGE_HOST_FOLDER."/$name.*"), create_function('$elt', 'return in_array(strtolower(substr($elt,-4)), array(".jpg", "jpeg", ".gif", ".png"));'))) ) {
         return false;
     }
-
+    
     // Image exists with this name: Prepare to show it
     $tag = $name;
     $name = basename(array_shift($result));
@@ -243,7 +258,14 @@ function twitter_image_host_setup($name) {
         $full = "$base-full.$extension";
     }
     
-    $GLOBALS['__twitter_image_host_data'] = array("tag" => $tag, "name" => $name, "title" => $title, "author" => $author, "full" => $full);
+    $GLOBALS['__twitter_image_host_data'] = array(
+        "tag" => $tag,
+        "numeric_tag" => base_convert($tag, 36, 10),
+        "name" => $name, 
+        "title" => trim($title), 
+        "author" => trim($author), 
+        "full" => $full);
+        
     return true;
 }
 
@@ -278,20 +300,33 @@ function twitter_image_host_response($tag, $url, $userid=null, $statusid=null) {
  * @since 0.1
  **/
 function twitter_image_host_template_redirect() {
+    
     if ( !isset($GLOBALS['__twitter_image_host_data']) ) return;
+    twitter_image_host_setup_state();
+
+    if ( is_feed() || is_trackback() ) return;
 
     $template = locate_template(array('twitter_image_host.php'));
-    if ( $template ) {
-        // Proper template is available - use that
-        include($template);
-        exit;
+    if ( !$template ) {
+        // Fall back to single template
+        $template = get_single_template();
     }
+
+    global $wp_query, $post, $posts, $comments;    
+    include($template);
     
-    $template = get_single_template();
+    exit;
+}
+
+/**
+ * Method to set up state correctly to display image
+ */
+function twitter_image_host_setup_state() {
+    global $post, $wp_query, $posts, $comments;
     
-    // Have to inject content into the page template instead
+    // Prepare a pseudo post
     $post = new StdClass;
-    $post->ID = base_convert($GLOBALS['__twitter_image_host_data']['tag'], 36, 10);
+    $post->ID = $GLOBALS['__twitter_image_host_data']['numeric_tag'];
     $post->post_author = 0;
     $post->post_date = date( 'Y-m-d H:i:s', filemtime(IMAGE_HOST_FOLDER."/".$GLOBALS['__twitter_image_host_data']['name']) );
     $post->post_content = the_twitter_image();
@@ -299,26 +334,51 @@ function twitter_image_host_template_redirect() {
     $post->comment_status = (get_option('twitter_image_host_comments_open', true) ? 'open' : 'closed');
     $post->ping_status = (get_option('twitter_image_host_comments_open', true) ? 'open' : 'closed');
     wp_cache_add($post->ID, $post, 'posts');
+    $posts = array($post);
+    $GLOBALS['__twitter_image_host_data']['post'] = $post;
     
-    global $wp_query;
     $wp_query->queried_object = $post;
-    $wp_query->is_single = true;
     $wp_query->post_count = 1;
     $wp_query->posts[0] = $post;
     $wp_query->is_404 = false;
     
-    include($template);
+    if ( $wp_query->is_feed ) {
+        // Support comment feed
+        $wp_query->comment_count = twitter_image_host_get_comments_number_filter(0);
+        $wp_query->comments = $comments = get_comments( array('post_id' => $post->ID, 'status' => 'approve', 'order' => 'ASC') );
+        $wp_query->is_comment_feed = true;
+    } else {
+        $wp_query->is_single = true;
+    }
     
-    exit;
 }
 
 // ==================================
-// =   Filters to aid presentation  =
+// =   Filters to make it all work  =
 // ==================================
 
-function twitter_image_host_page_link($permalink, $page) {
+function twitter_image_host_posts_filter($posts) {
+    if ( !isset($GLOBALS['__twitter_image_host_data']) ) return $permalink;
+    return array($GLOBALS['__twitter_image_host_data']['post']);
+}
+
+function twitter_image_host_post_link($permalink, $post) {
     if ( !isset($GLOBALS['__twitter_image_host_data']) ) return $permalink;
     return get_option('siteurl')."/".basename(substr(the_twitter_image_url(), 0, strrpos(the_twitter_image_url(), '.')));
+}
+
+function twitter_image_host_post_comments_feed_link_filter($link) {
+    if ( !isset($GLOBALS['__twitter_image_host_data']) ) return $link;
+    if ( '' != get_option('permalink_structure') ) {
+        return trailingslashit(get_option('home')) . "comments/feed/?p=".$GLOBALS['__twitter_image_host_data']['numeric_tag'];
+    } else {
+        return trailingslashit(get_option('home')) . "?feed=comments-rss2&amp;p=".$GLOBALS['__twitter_image_host_data']['numeric_tag'];
+    }
+}
+
+function twitter_image_host_trackback_url_filter($link) {
+    if ( !isset($GLOBALS['__twitter_image_host_data']) ) return $link;
+    return get_option('siteurl') . '/wp-trackback.php?p=' . $GLOBALS['__twitter_image_host_data']['numeric_tag'];
 }
 
 function twitter_image_host_comments_open_filter($open, $post) {
@@ -342,9 +402,10 @@ function twitter_image_host_the_author_filter($author) {
 }
 
 function twitter_image_host_query_filter($query) {
-    $post_status_query = "SELECT post_status, comment_status FROM wp_posts WHERE ID = ";
-
-    if ( $_SERVER['REQUEST_URI'] == '/wp-comments-post.php' ) {
+    global $wpdb;
+    $post_status_query = "SELECT post_status, comment_status FROM $wpdb->posts WHERE ID = ";
+    
+    if ( strpos($_SERVER['REQUEST_URI'], '/wp-comments-post.php') !== false ) {
 
         if ( strlen($query) > strlen($post_status_query) && !strncmp($query, $post_status_query, strlen($post_status_query)) ) {
             $name = base_convert(substr($query, strlen($post_status_query)), 10, 36);
@@ -361,7 +422,7 @@ function twitter_image_host_query_filter($query) {
 
 function twitter_image_host_comment_redirect_filter($location, $comment) {
     if ( !isset($GLOBALS['__twitter_image_host_data']) ) return $location;
-    return twitter_image_host_page_link().'#comments';
+    return twitter_image_host_post_link().'#comments';
 }
 
 function twitter_image_host_get_comments_number_filter($count) {
@@ -454,8 +515,11 @@ add_action( 'plugins_loaded', 'twitter_image_host_run' );
 add_action( 'template_redirect', 'twitter_image_host_template_redirect' );
 add_action( 'admin_menu', 'twitter_image_host_setup_admin' );
 
-add_filter( 'page_link', 'twitter_image_host_page_link');
-add_filter( 'post_link', 'twitter_image_host_page_link');
+add_filter( 'the_posts', 'twitter_image_host_posts_filter' );
+add_filter( 'page_link', 'twitter_image_host_post_link');
+add_filter( 'post_link', 'twitter_image_host_post_link');
+add_filter( 'post_comments_feed_link', 'twitter_image_host_post_comments_feed_link_filter' );
+add_filter( 'trackback_url', 'twitter_image_host_trackback_url_filter' );
 add_filter( 'comments_open', 'twitter_image_host_comments_open_filter' );
 add_filter( 'pings_open', 'twitter_image_host_comments_open_filter' );
 add_filter( 'edit_post_link', 'twitter_image_host_edit_post_link_filter' );
