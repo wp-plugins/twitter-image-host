@@ -121,5 +121,6 @@ Here's how:
 
 == Changes ==
 
+* 0.3: Fixed bug that interferes with some other plugins
 * 0.2: Proper support for trackbacks, comment feeds, fixed a bug which caused plugin to say Twitter was unavailable when the Twitter account has no direct messages
 * 0.1: Initial release
