@@ -59,7 +59,7 @@ function the_twitter_image_author() {
 
 function the_twitter_image() {
     return (the_twitter_full_image_url() ? '<a href="'.the_twitter_full_image_url().'" rel="lightbox">' : '') .
-            '<img src="'.the_twitter_image_url().'" class="center twitter_image" />'.
+            '<img src="'.the_twitter_image_url().'" class="aligncenter twitter_image" />'.
            (the_twitter_full_image_url() ? '</a>' : '');
 }
 
@@ -306,7 +306,7 @@ function twitter_image_host_template_redirect() {
 
     if ( is_feed() || is_trackback() ) return;
 
-    $template = locate_template(array('twitter_image_host.php'));
+    $template = locate_template(array('twitter-image-host.php'));
     if ( !$template ) {
         // Fall back to single template
         $template = get_single_template();
