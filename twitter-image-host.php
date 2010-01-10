@@ -306,7 +306,7 @@ function twitter_image_host_template_redirect() {
 
     if ( is_feed() || is_trackback() ) return;
 
-    $template = locate_template(array('twitter_image_host.php'));
+    $template = locate_template(array('twitter-image-host.php'));
     if ( !$template ) {
         // Fall back to single template
         $template = get_single_template();
