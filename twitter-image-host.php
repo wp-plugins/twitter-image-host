@@ -3,7 +3,7 @@
 Plugin Name: Twitter Image Host
 Plugin URI: http://atastypixel.com/blog/wordpress/plugins/twitter-image-host
 Description: Host Twitter images from your blog and keep your traffic, rather than using a service like Twitpic and losing your viewers
-Version: 0.3
+Version: 0.4
 Author: Michael Tyson
 Author URI: http://atastypixel.com/blog
 */
@@ -80,7 +80,7 @@ function twitter_image_host_run() {
     $siteURL = get_option('siteurl');
     $siteSubdirectory = substr($siteURL, strpos($siteURL, '://'.$_SERVER['HTTP_HOST'])+strlen('://'.$_SERVER['HTTP_HOST']));
     if ( $siteSubdirectory == '/' ) $siteSubdirectory = '';
-    $request = ($siteSubdirectory ? str_replace($_SERVER['REQUEST_URI'], $siteSubdirectory, '/') : $_SERVER['REQUEST_URI']);
+    $request = ($siteSubdirectory ? preg_replace("/\/\/+/", "/", '/'.str_replace($siteSubdirectory, '/', $_SERVER['REQUEST_URI'])) : $_SERVER['REQUEST_URI']);
     
     if ( preg_match('/^\/?twitter-image-host(?:\/(.*))?/', $request, &$matches) ) {
         // API call
@@ -200,7 +200,7 @@ function twitter_image_host_server($command) {
     }
     
     // Generate URL
-    $url = (get_option('twitter_image_host_override_url_prefix') ? get_option('twitter_image_host_override_url_prefix') : get_option('siteurl').'/').$tag;
+    $url = preg_replace("/\/\/+/", "/", (get_option('twitter_image_host_override_url_prefix') ? get_option('twitter_image_host_override_url_prefix') : get_option('siteurl')).'/'.$tag);
     
     // Post to twitter if asked to
     if ( $command == 'uploadAndPost' || ($_REQUEST['from_form'] && $_REQUEST['tweet']) ) {
@@ -488,7 +488,7 @@ function twitter_image_host_options_page() {
 	
 	</table>
 	<input type="hidden" name="action" value="update" />
-	<input type="hidden" name="page_options" value="twitter_image_host_twitter_accounts, twitter_image_host_comments_open" />
+	<input type="hidden" name="page_options" value="twitter_image_host_twitter_accounts, twitter_image_host_comments_open, twitter_image_host_override_url_prefix" />
 	
 	<p class="submit">
 	<input type="submit" name="Submit" value="<?php _e('Save Changes', 'twitter-image-host') ?>" />
