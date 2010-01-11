@@ -109,7 +109,7 @@ Here's how:
         RewriteCond %{REQUEST_URI} ^/([^/]+)/?$
         RewriteCond %{DOCUMENT_ROOT}/blog/wp-content/twitter-image-host-content/%1.jpg -f [OR]
         RewriteCond %{DOCUMENT_ROOT}/blog/wp-content/twitter-image-host-content/%1.png -f [OR]
-        RewriteCond %{DOCUMENT_ROOT}/blog/wp-content/twitter-image-host-content/%1.jpeg -f [OR]
+        RewriteCond %{DOCUMENT_ROOT}/blog/wp-content/twitter-image-host-content/%1.jpeg -f
         RewriteRule (.*) /blog/$1 [L]
         </IfModule>
 
