@@ -126,7 +126,7 @@ Here's how:
 
 = 0.4.2 =
  * Improved Twitter error reporting
- * Fixed bug causing incorrect API reponse
+ * Fixed bug causing incorrect API response
  
 = 0.4.1 =
  * Bugfix in URL creation
