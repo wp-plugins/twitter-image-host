@@ -4,7 +4,7 @@ Donate link: http://atastypixel.com/blog/wordpress/plugins/twitter-image-host
 Tags: images,twitter,hosting
 Requires at least: 2.6
 Tested up to: 2.9
-Stable tag: 0.4.1
+Stable tag: 0.4.2
 
 Host Twitter images from your blog and keep your traffic, rather than using a service like Twitpic and losing your viewers.
 
@@ -91,6 +91,9 @@ To access this facility from an application, use the access point http://your-bl
 
 The API is the same as that of [img.ly](http://img.ly/pages/API).
 
+To post from Tweetie 2 for iPhone, visit Tweetie's settings, and within *Services, Image Service*, select 'Custom', then
+enter http://your-blog.com/twitter-image-host/upload
+
 For Mac users, an Automator service has been created to upload images by right-clicking on a file in Finder, then selecting
 a context menu item.  This service can be downloaded from the [plugin's homepage](http://atastypixel.com/blog/wordpress/plugins/twitter-image-host).
 
@@ -119,10 +122,28 @@ Here's how:
   Then, it'll rewrite the request silently to the real Twitter Image Host URL, without the viewer seeing.
 3. In Twitter Image Host settings, set the 'Override URL Prefix' option to 'http://your-site.com/'
 
-== Changes ==
+== Changelog ==
 
-* 0.4.1: Bugfix in URL creation
-* 0.4: Improved support for running out of a sub-directory
-* 0.3: Fixed bug that interferes with some other plugins
-* 0.2: Proper support for trackbacks, comment feeds, fixed a bug which caused plugin to say Twitter was unavailable when the Twitter account has no direct messages
-* 0.1: Initial release
+= 0.4.2 =
+ * Improved Twitter error reporting
+ * Fixed bug causing incorrect API reponse
+ 
+= 0.4.1 =
+ * Bugfix in URL creation
+ 
+= 0.4 =
+ * Improved support for running out of a sub-directory
+ 
+= 0.3 =
+ * Fixed bug that interferes with some other plugins
+ 
+= 0.2 =
+ * Proper support for trackbacks, comment feeds, fixed a bug which caused plugin to say Twitter was unavailable when the Twitter account has no direct messages
+ 
+= 0.1 =
+ * Initial release
+ 
+== Upgrade Notice ==
+
+= 0.4.2 =
+This update fixes a bug that stopped Tweetie 2 for iPhone working with this plugin.

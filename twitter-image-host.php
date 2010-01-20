@@ -3,7 +3,7 @@
 Plugin Name: Twitter Image Host
 Plugin URI: http://atastypixel.com/blog/wordpress/plugins/twitter-image-host
 Description: Host Twitter images from your blog and keep your traffic, rather than using a service like Twitpic and losing your viewers
-Version: 0.4.1
+Version: 0.4.2
 Author: Michael Tyson
 Author URI: http://atastypixel.com/blog
 */
@@ -214,7 +214,12 @@ function twitter_image_host_server($command) {
         }
         $response = $t->update($status);
         if ( !$response ) {
-            twitter_image_host_error(TWITTER_POST_ERROR, 'Error posting to Twitter');
+            if ( $t->responseInfo['http_code'] == 401 ) {
+                twitter_image_host_error(INVALID_USER_OR_PASS, 'Invalid username or password');
+            } else {
+                twitter_image_host_error(TWITTER_OFFLINE, "Error posting to Twitter (".($t->responseInfo['http_code'] ? "response code ".$t->responseInfo['http_code'] : "couldn't connect").")");
+            }
+            
             @unlink(IMAGE_HOST_FOLDER."/$tag.$extension");
             @unlink(IMAGE_HOST_FOLDER."/$tag-full.$extension");
             @unlink(IMAGE_HOST_FOLDER."/$tag.meta");

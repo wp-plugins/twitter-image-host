@@ -58,7 +58,7 @@ class RSP {
         $resp = '';
         foreach ( $objs as $id => $val ) {
             if ( !$val ) continue;
-            $resp .= "<$id>".htmlspecialchars($val)."</id>\n";
+            $resp .= "<$id>".htmlspecialchars($val)."</$id>\n";
         }
         return $resp;
     }
