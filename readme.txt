@@ -4,7 +4,7 @@ Donate link: http://atastypixel.com/blog/wordpress/plugins/twitter-image-host
 Tags: images,twitter,hosting
 Requires at least: 2.6
 Tested up to: 2.9
-Stable tag: 0.4.3
+Stable tag: 0.4.4
 
 Host Twitter images from your blog and keep your traffic, rather than using a service like Twitpic and losing your viewers.
 
@@ -124,6 +124,10 @@ Here's how:
 
 == Changelog ==
 
+= 0.4.4 =
+ * Fix to HTML submission form for WP installations within a sub-directory
+ * If a tweet is too long, report by how many characters
+
 = 0.4.3 =
  * Minor tweak to suppress missing argument warnings
 
@@ -147,6 +151,12 @@ Here's how:
  * Initial release
  
 == Upgrade Notice ==
+
+= 0.4.4 =
+This update fixes the HTML image submission form for WP installations within a sub-directory
+
+= 0.4.3 =
+If you are getting 'missing argument' warnings, install this update.
 
 = 0.4.2 =
 This update fixes a bug that stopped Tweetie 2 for iPhone working with this plugin.

@@ -41,7 +41,7 @@
       <p>Try again:</p>
   <?php endif; ?>
   <div class="form">
-  <form method="post" enctype="multipart/form-data" action="/twitter-image-host/upload">
+  <form method="post" enctype="multipart/form-data" action="<?php echo trailingslashit(get_option('siteurl')) ?>twitter-image-host/upload">
       <p>
           Submission title:<br/>
           <input type="text" name="title" value="<?php echo $_REQUEST['title'] ?>" class="text" /><br/>
