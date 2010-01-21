@@ -30,6 +30,9 @@ custom image hosting services.
 Uses Twitter's authentication and a list of authorised accounts, so you can let others use your image host too.  You can even 
 post status updates to Twitter while submitting images.
 
+Provides a widget and shortcode to display uploaded images.  This supports filtering by Twitter account, styling with CSS,
+and Lightbox/Thickbox.
+
 Mac users, grab the Automator service from the [plugin's homepage](http://atastypixel.com/blog/wordpress/plugins/twitter-image-host) to
 be able to upload via a context menu item in the Finder!
 
@@ -39,6 +42,29 @@ be able to upload via a context menu item in the Finder!
 2. Activate the plugin through the 'Plugins' menu in WordPress
 3. Visit the settings page and add your Twitter account to the list of authorised accounts
 4. Start submitting images - See the 'Posting Images' section for more
+
+== Widget ==
+
+To use the widget, simply visit the Widgets page and drag the "Twitter Images" widget into a sidebar and configure it.
+
+== Shortcode ==
+
+Shortcodes are snippets of text that can be inserted into pages and posts.  These snippets are replaced by various generated content.
+Twitter Image Host provides a 'twitter-images' shortcode to display images you have uploaded within a page/post.
+
+Available parameters:
+
+      count           Number of items to display
+      view            Image thumbnail view: squares, proportional, or large
+      author          Comma-separated list of Twitter account names to limit results to
+      columns         Number of columns of images to display 
+      lightbox        'true' to use Lightbox/Thickbox
+
+Example:
+
+      [twitter-images columns=4 lightbox="true"]
+  
+
 
 == Creating a Template ==
 
@@ -123,6 +149,9 @@ Here's how:
 3. In Twitter Image Host settings, set the 'Override URL Prefix' option to 'http://your-site.com/'
 
 == Changelog ==
+
+= 0.5 =
+ * Implemented a widget and shortcode to display uploaded images (see documentation)
 
 = 0.4.4 =
  * Fix to HTML submission form for WP installations within a sub-directory

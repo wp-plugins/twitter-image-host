@@ -3,7 +3,7 @@
 Plugin Name: Twitter Image Host
 Plugin URI: http://atastypixel.com/blog/wordpress/plugins/twitter-image-host
 Description: Host Twitter images from your blog and keep your traffic, rather than using a service like Twitpic and losing your viewers
-Version: 0.4.4
+Version: 0.5
 Author: Michael Tyson
 Author URI: http://atastypixel.com/blog
 */
@@ -29,6 +29,10 @@ define('IMAGE_HOST_FOLDER', WP_CONTENT_DIR.'/twitter-image-host-content');
 define('IMAGE_HOST_URL', WP_CONTENT_URL.'/twitter-image-host-content');
 define('IMAGE_HOST_MAX_FULL_IMAGE_WIDTH', 900);
 define('IMAGE_HOST_MAX_FULL_IMAGE_HEIGHT', 800);
+define('IMAGE_HOST_SQUARE_THUMB_WIDTH', 75);
+define('IMAGE_HOST_SQUARE_THUMB_HEIGHT', 75);
+define('IMAGE_HOST_MAX_PROPORTIONAL_THUMB_WIDTH', 127);
+define('IMAGE_HOST_MAX_PROPORTIONAL_THUMB_HEIGHT', 127);
 
 
 // =============================
@@ -65,7 +69,7 @@ function the_twitter_image() {
 
 
 // ========================
-// =       The Guts       =
+// =     Entry Point      =
 // ========================
 
 
@@ -237,6 +241,121 @@ function twitter_image_host_server($command) {
 
 
 /**
+ * Widget
+ *
+ * @param args Widget arguments
+ * @param params Multi-widget parameters
+ * @author Michael Tyson
+ * @package Twitter Image Host
+ * @since 0.5
+ **/
+function twitter_image_host_widget($args, $params) {
+
+    if ( is_admin() ) return; // Don't bother when admin
+
+    // Load options specific to this widget instance
+    if ( is_numeric($params) ) $params = array( 'number' => $params );
+    $params = wp_parse_args( $params, array( 'number' => -1 ) );
+    $id = $params['number'];
+    $allOptions = get_option('twitter_image_host_widget');
+    if ( !$allOptions ) $allOptions = array();
+    $options = &$allOptions[$id];
+    
+    echo $args['before_widget'];
+    if ( $options['title'] ) {
+		echo $args['before_title'].htmlspecialchars($options['title']).$args['after_title'];
+	}
+
+    $items = twitter_image_host_all_items($options);
+    twitter_image_host_render_items($items, $options);
+    
+    echo $args['after_widget'];
+}
+
+
+/**
+ * Shortcode function
+ *
+ *  Available parameters:
+ *      count           Number of items to display
+ *      view            Image thumbnail view: squares, proportional, or large
+ *      author          Comma-separated list of Twitter account names to limit results to
+ *      columns         Number of columns of images to display 
+ *      lightbox        'true' to use Lightbox/Thickbox
+ *
+ * @param options Attributes from shortcode
+ * @author Michael Tyson
+ * @package Twitter Image Host
+ * @since 0.5
+ **/
+function twitter_image_host_images_shortcode($options) {
+    $options = array_map('html_entity_decode', $options);
+    ob_start();
+    
+    $items = twitter_image_host_all_items($options);
+    twitter_image_host_render_items($items, $options);
+    
+    $contents = ob_get_contents();
+    ob_end_clean();
+    
+    return $contents;
+}
+
+
+// ========================
+// =      Renderers       =
+// ========================
+
+
+/**
+ * Render posted images
+ *
+ * @param items Array of objects, each representing an item with properties id, page, thumbnail, image, title, author
+ * @param options Options associative array
+ * @author Michael Tyson
+ * @package Twitter Image Host
+ * @since 0.5
+ **/
+function twitter_image_host_render_items($items, $options) {
+    ?>
+    <div class="twitter_image_host_images_container">
+    <?php if ( count($items) == 0 ) : ?>
+        <p class="twitter_image_host_message">There are no items to display</p>
+    <?php else : ?>
+        <?php $count = 0; ?>
+        <?php foreach ( $items as $item ) : ?>
+
+            <div class="twitter_image_host_item twitter_image_host_item_view_<?php echo ( $options['view'] ? $options['view'] : 'squares' ) ?>">
+                <?php if ( $options['lightbox'] ) : ?>
+                    <a href="<?php echo $item->image ?>" class="thickbox" rel="lightbox[twitter_image_host]" 
+                        title="<?php echo htmlspecialchars("$item->title from <a href=\"http://twitter.com/$item->author\">$item->author</a> | <a href=\"$item->page\">View</a>") ?>">
+                <?php else : ?>
+                    <a href="<?php echo $item->page ?>">
+                <?php endif; ?>
+                <span></span>
+                <img src="<?php echo $item->thumbnail ?>" title="<?php echo htmlspecialchars($item->title) ?>" alt="<?php echo htmlspecialchars($item->title) ?>" />
+                </a>
+            </div>
+            
+            <?php 
+            $count++;
+            if ( $options['columns'] && ($count%$options['columns'])==0 ) echo '<br />';
+            ?>
+        <?php endforeach; ?>
+        
+    <?php endif; ?>
+    
+    </div>
+    <?php
+}
+
+// ========================
+// =        Helpers       =
+// ========================
+
+
+
+/**
  * Locate image by name
  *
  * @author Michael Tyson
@@ -292,6 +411,76 @@ function twitter_image_host_response($tag, $url, $userid=null, $statusid=null) {
         RSP::response($tag, $url, $userid, $statusid);
     }
 }
+
+
+/**
+ * Load all posted images
+ *
+ * @return Array of objects, each representing an item with properties id, page, thumbnail, image, title, author
+ * @param options Options associative array
+ * @author Michael Tyson
+ * @package Twitter Image Host
+ * @since 0.5
+ **/
+function twitter_image_host_all_items($options) {
+    
+    $authors = (trim($options['author']) ? array_map('trim', explode(',', $options['author'])) : null);
+    
+    if ( !($dir = opendir(IMAGE_HOST_FOLDER)) ) return array();
+    $items = array();
+    while (($file = readdir($dir))) {
+        if ( !preg_match('/^([a-z0-9]{5})\.({jpg|jpeg|png|gif})$/i', $file, $matches) ) continue;
+
+        $id = $matches[1];
+        $extension = $matches[2];
+        $title = $author = $full = $thumbnail = $view = null;
+        
+        if ( file_exists(IMAGE_HOST_FOLDER."/$id.meta") ) {
+            list($title, $author) = file(IMAGE_HOST_FOLDER."/$id.meta");
+        }
+        if ( $authors && !in_array($author, $authors) ) continue; 
+
+        if ( file_exists(IMAGE_HOST_FOLDER."/$id-full.$extension") ) {
+            $full = "$id-full.$extension";
+        }
+        
+        $view = ($options['view'] ? $options['view'] : 'squares');
+        if ( file_exists(IMAGE_HOST_FOLDER."/$id-thumb-$view.$extension") ) {
+            $thumbnail = "$id-thumb-$view.$extension";
+        }
+        
+        if ( !$thumbnail ) {
+            require_once(ABSPATH . 'wp-admin/includes/image.php' );
+            $thumbnail = "$id-thumb-$view.$extension";
+            switch ( $view ) {
+                case 'large':
+                    $thumbnail = $file;
+                    break;
+                case 'proportional':
+                    $new_file = image_resize(IMAGE_HOST_FOLDER."/".($full ? $full : $file), IMAGE_HOST_MAX_PROPORTIONAL_THUMB_WIDTH, IMAGE_HOST_MAX_PROPORTIONAL_THUMB_HEIGHT);
+                    rename($new_file, IMAGE_HOST_FOLDER."/$thumbnail");
+                    break;
+                case 'squares':
+                    $new_file = image_resize(IMAGE_HOST_FOLDER."/".($full ? $full : $file), IMAGE_HOST_SQUARE_THUMB_WIDTH, IMAGE_HOST_SQUARE_THUMB_HEIGHT, true);
+                    rename($new_file, IMAGE_HOST_FOLDER."/$thumbnail");
+                default:
+                    break;
+            }
+        }
+        
+        $baseurl = trailingslashit(get_option('siteurl'));
+        $item = new StdClass;
+        $item->id             = $id;
+        $item->page           = $baseurl.$id;
+        $item->image          = trailingslashit(IMAGE_HOST_URL).($full ? $full : $file);
+        $item->thumbnail      = trailingslashit(IMAGE_HOST_URL).$thumbnail;
+        $item->title          = trim($title);
+        $item->author         = trim($author);
+        $items[] = $item;
+    }
+    return $items;
+}
+
 
 // =======================
 // =     Presentation    =
@@ -356,7 +545,6 @@ function twitter_image_host_setup_state() {
     } else {
         $wp_query->is_single = true;
     }
-    
 }
 
 // ==================================
@@ -436,6 +624,212 @@ function twitter_image_host_get_comments_number_filter($count) {
     return count(get_comments( array('post_id' => base_convert($GLOBALS['__twitter_image_host_data']['tag'], 36, 10), 'status' => 'approve') ));
     
 }
+
+
+// =====================================================
+// =       Widget initialisation & configuration       =
+// =====================================================
+
+/**
+ * Register widget on startup
+ *
+ *  Allows multiple copies of widget to be used.  Derived from
+ *  the built-in text widget, wp-includes/widgets.php:1037
+ *
+ * @since 0.5
+ * @author Michael Tyson
+ */
+function twitter_image_host_init() {
+    
+    // Add stylesheet
+    wp_register_style('twitter-image-host-css', WP_PLUGIN_URL.'/twitter-image-host/style.css');
+    wp_enqueue_style('twitter-image-host-css');
+    
+    $options = get_option('twitter_image_host_widget');
+    if ( !$options ) $options = array();
+    
+    $widget_opts  = array('classname' => 'twitter_image_host_widget', 'description' => __('Display images posted to Twitter'));
+    $control_opts = array('id_base' => 'twitter_image_host_widget');
+    $name         = __('Twitter Images');
+    
+    if ( count($options) == 0 ) {
+        // No widget copies - Register using a generic template
+        $identifier = "twitter_image_host_widget-1";
+        wp_register_sidebar_widget($identifier, $name, 'twitter_image_host_widget', $widget_opts, array('number' => -1));
+        wp_register_widget_control($identifier, $name, 'twitter_image_host_widget_control', $control_opts, array('number' => -1));
+        return;
+    }
+    
+    // Iterate through all widget copies
+    foreach ( $options as $id => $values ) {
+        
+        // "Old widgets can have null values for some reason" - wp-includes/widgets.php:1046
+        if ( !$values ) continue;
+        
+        // Register widget and control
+        $identifier = "twitter_image_host_widget-$id";
+        wp_register_sidebar_widget($identifier, $name, 'twitter_image_host_widget', $widget_opts, array('number' => $id));
+        wp_register_widget_control($identifier, $name, 'twitter_image_host_widget_control', $control_opts, array('number' => $id));
+    }
+
+
+}
+
+/**
+ * Load default widget preferences
+ *
+ * @return Associative array of defaults
+ * @since 0.1
+ * @author Michael Tyson
+ **/
+function twitter_image_host_widget_defaults() {
+    return array(
+        'title'       =>  __('Twitter Images'),
+        'count'       => 10,
+        'columns'     => '',
+        'view'        => 'squares',
+        'author'      => '',
+        'lightbox'    => false
+    );
+}
+
+/**
+ * Update widget options
+ *
+ *  Allows multiple copies of widget to be used.  Derived from
+ *  the built-in text widget, wp-includes/widgets.php:970
+ *
+ * @since 0.5
+ * @author Michael Tyson
+ **/
+function twitter_image_host_widget_control_update() {
+    
+    // Only perform this function once when saving, not for each instance
+    static $updated = false;
+    if ( $updated ) return;
+    $updated = true;
+	
+	global $wp_registered_widgets;
+	
+    $options = get_option('twitter_image_host_widget');
+    if ( !is_array($options) ) $options = array();
+    
+    // Get name of this sidebar
+    $sidebar = $_POST['sidebar'];
+    
+    // Get array of widgets in sidebar
+    $widgets = wp_get_sidebars_widgets();
+	if ( is_array($widgets[$sidebar]) )
+		$this_sidebar = &$widgets[$sidebar];
+	else
+		$this_sidebar = array();
+
+
+    // Check for removals, delete corresponding options
+	foreach ( $this_sidebar as $widget_id ) {
+		$number = $wp_registered_widgets[$widget_id]['params'][0]['number'];
+		
+	    // If this is one of our widgets (callback is ours and number specified)
+		if ( $wp_registered_widgets[$widget_id]['callback'] == 'twitter_image_host_widget' && is_numeric($number) ) {
+		    
+			if ( !in_array( "twitter_image_host_widget-$number", $_POST['widget-id'] ) ) {
+			    // the widget has been removed.
+				unset($options[$number]);
+			}
+		}
+	}
+
+	foreach ( $_POST['twitter_image_host_widget'] as $number => $widget ) {
+		if ( !isset($widget['title']) && isset($options[$number]) ) {
+		    // User clicked cancel
+			continue;
+		}
+		
+		$fields = array_keys(twitter_image_host_widget_defaults());
+		
+		unset($options[$number]);
+		foreach ( $fields as $field ) {
+		    $options[$number][$field] = stripslashes($widget[$field]);
+	    }
+	}
+	
+	update_option('twitter_image_host_widget', $options);
+
+}
+
+/**
+ * Display and process widget options
+ *
+ *  Allows multiple copies of widget to be used.  Derived from
+ *  the built-in text widget, wp-includes/widgets.php:970
+ *
+ * @param params Multi-widget parameters
+ * @since 0.5
+ * @author Michael Tyson
+ **/
+function twitter_image_host_widget_control($params=null) {
+
+    if ( !empty($_POST['twitter_image_host_widget']) ) {
+        // Update options
+        twitter_image_host_widget_control_update();
+    }
+
+    // Load options specific to this instance
+    if ( is_numeric($params) ) $params = array( 'number' => $params );
+    $params = wp_parse_args( $params, array( 'number' => -1 ) );
+    $id = $params['number'];
+    $options = get_option('twitter_image_host_widget');
+    if ( $id == -1 ) {
+        $options = twitter_image_host_widget_defaults(); 
+        $id = '%i%';
+    } else {
+        $options = $options[$id];
+    }
+    
+    $title       = htmlspecialchars($options['title']);
+    $author      = htmlspecialchars($options['author']);
+    $view        = $options['view'];
+    $count       = (int)$options['count'];
+    $columns     = $options['columns'];
+    $lightbox    = $options['lightbox'];
+    
+    ?>
+    <p>
+        <label for="twitter_image_host_widget_<?php echo $id ?>_title"><?php _e('Title:') ?></label>
+        <input type="text" id="twitter_image_host_widget_<?php echo $id ?>_title" name="twitter_image_host_widget[<?php echo $id ?>][title]" value="<?php echo $title ?>" />
+    </p>
+    <p>
+        <label for="twitter_image_host_widget_<?php echo $id ?>_title"><?php _e('Limit to images from Twitter account(s):') ?></label>
+        <input type="text" id="twitter_image_host_widget_<?php echo $id ?>_author" name="twitter_image_host_widget[<?php echo $id ?>][author]" value="<?php echo $author ?>" /><br/>
+        <small>One or more Twitter accounts separated by commas.  Leave blank to show images from all Twitter accounts.</small>
+    </p>
+    <p>
+        <label for="twitter_image_host_widget_<?php echo $id ?>_count"><?php _e('Number of items to show:') ?></label>
+        <input type="text" id="twitter_image_host_widget_<?php echo $id ?>_count" name="twitter_image_host_widget[<?php echo $id ?>][count]" size="4" value="<?php echo $count ?>" />
+    </p>
+    <p>
+        <input type="radio" id="twitter_image_host_widget_<?php echo $id ?>_view_squares" name="twitter_image_host_widget[<?php echo $id ?>][view]" value="squares" <?php echo ($view=='squares'?'checked':'') ?> />
+        <label for="twitter_image_host_widget_<?php echo $id ?>_view_squares"><?php _e('View as square thumbnails') ?></label><br/>
+        <input type="radio" id="twitter_image_host_widget_<?php echo $id ?>_view_proportional" name="twitter_image_host_widget[<?php echo $id ?>][view]" value="proportional" <?php echo ($view=='proportional'?'checked':'') ?> />
+        <label for="twitter_image_host_widget_<?php echo $id ?>_view_proportional"><?php _e('View as proportional thumbnails') ?></label><br/>
+        <input type="radio" id="twitter_image_host_widget_<?php echo $id ?>_view_large" name="twitter_image_host_widget[<?php echo $id ?>][view]" value="large" <?php echo ($view=='large'?'checked':'') ?> />
+        <label for="twitter_image_host_widget_<?php echo $id ?>_view_large"><?php _e('View as large thumbnails') ?></label><br/>
+    </p>
+    <p>
+        <label for="twitter_image_host_widget_<?php echo $id ?>_columns"><?php _e('Number of columns to display:') ?></label>
+        <input type="text" id="twitter_image_host_widget_<?php echo $id ?>_columns" name="twitter_image_host_widget[<?php echo $id ?>][columns]" size="4" value="<?php echo $columns ?>" /><br/>
+        <small>Leave blank to not separate items into columns</small>
+    </p>
+    <p>
+        <input type="checkbox" id="twitter_image_host_widget_<?php echo $id ?>_lightbox" name="twitter_image_host_widget[<?php echo $id ?>][lightbox]" <?php echo ($lightbox?'checked':'') ?> />
+        <label for="twitter_image_host_widget_<?php echo $id ?>_lightbox"><?php _e('Use Lightbox, etc.') ?></label><br/>
+        <small>You must have Lightbox/Thickbox/etc installed for this to work</small>
+    </p>
+    
+    <?php
+}
+
+
 
 // =======================
 // =       Options       =
@@ -517,6 +911,8 @@ function twitter_image_host_setup_admin() {
 }
 
 
+add_action( 'init', 'twitter_image_host_init' );
+
 add_action( 'plugins_loaded', 'twitter_image_host_run' );
 add_action( 'template_redirect', 'twitter_image_host_template_redirect' );
 add_action( 'admin_menu', 'twitter_image_host_setup_admin' );
@@ -534,3 +930,5 @@ add_filter( 'the_author', 'twitter_image_host_the_author_filter' );
 add_filter( 'query', 'twitter_image_host_query_filter' );
 add_filter( 'comment_post_redirect', 'twitter_image_host_comment_redirect_filter' );
 add_filter( 'get_comments_number', 'twitter_image_host_get_comments_number_filter' );
+
+add_shortcode('twitter-images', 'twitter_image_host_images_shortcode');
