@@ -3,7 +3,7 @@
 Plugin Name: Twitter Image Host
 Plugin URI: http://atastypixel.com/blog/wordpress/plugins/twitter-image-host
 Description: Host Twitter images from your blog and keep your traffic, rather than using a service like Twitpic and losing your viewers
-Version: 0.4.2
+Version: 0.4.3
 Author: Michael Tyson
 Author URI: http://atastypixel.com/blog
 */
@@ -367,7 +367,7 @@ function twitter_image_host_posts_filter($posts) {
     return array($GLOBALS['__twitter_image_host_data']['post']);
 }
 
-function twitter_image_host_post_link($permalink, $post) {
+function twitter_image_host_post_link($permalink, $post=null) {
     if ( !isset($GLOBALS['__twitter_image_host_data']) ) return $permalink;
     return get_option('siteurl')."/".basename(substr(the_twitter_image_url(), 0, strrpos(the_twitter_image_url(), '.')));
 }
@@ -386,12 +386,12 @@ function twitter_image_host_trackback_url_filter($link) {
     return get_option('siteurl') . '/wp-trackback.php?p=' . $GLOBALS['__twitter_image_host_data']['numeric_tag'];
 }
 
-function twitter_image_host_comments_open_filter($open, $post) {
+function twitter_image_host_comments_open_filter($open, $post=null) {
     if ( !isset($GLOBALS['__twitter_image_host_data']) ) return $open;
     return get_option('twitter_image_host_comments_open', true);
 }
 
-function twitter_image_host_edit_post_link_filter($link, $post) {
+function twitter_image_host_edit_post_link_filter($link, $post=null) {
     if ( !isset($GLOBALS['__twitter_image_host_data']) ) return $link;
     return '';
 }
