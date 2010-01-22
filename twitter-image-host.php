@@ -477,6 +477,8 @@ function twitter_image_host_all_items($options) {
         $item->title          = trim($title);
         $item->author         = trim($author);
         $items[] = $item;
+        
+        if ( $options['count'] && count($items) == $options['count'] ) break;
     }
     return $items;
 }
