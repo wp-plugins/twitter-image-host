@@ -43,6 +43,22 @@ be able to upload via a context menu item in the Finder!
 3. Visit the settings page and add your Twitter account to the list of authorised accounts
 4. Start submitting images - See the 'Posting Images' section for more
 
+If you find Twitter Image Host useful, please consider buying some awesome [Mac/iPhone software](http://atastypixel.com/products). Then
+tell all your friends.
+
+== Frequently Asked Questions ==
+
+= I get "Couldn't place uploaded file" messages =
+
+You probably need to create the folder in which Twitter Image Host stores uploaded images -- it will try to create the folder automatically, but it will fail if it doesn't have permission.
+
+Create a folder called `twitter-image-host-content` within the `wp-content` folder of your Wordpress installation, and make sure it has write permission for the web server user.
+
+= I keep getting 404 errors =
+
+Make sure your blog is using URL rewriting (i.e. your permalink structure is anything but the boring default `?p=###`).
+
+
 == Widget ==
 
 To use the widget, simply visit the Widgets page and drag the "Twitter Images" widget into a sidebar and configure it.
@@ -69,26 +85,26 @@ Example:
       [twitter-images columns=4 lightbox="true"]
   
 
+== Template Tags ==
 
-== Creating a Template ==
+This plugin provides several template tags, for use both in displaying single posts (see 'Creating a Single Template'), and for custom pages which display
+many posts in a loop (see 'Using Template Tags in a Loop').
 
-By default, this plugin will use the standard post template ('single.php').  However, if you wish, you can create a 
-custom template to display hosted images.  The template should be called 'twitter-image-host.php', located within your
-current theme directory.
+The available template tags are:
 
-There are five template tags available:
+= Single Entry Tags =
+
+*`the_twitter_image_permalink`*
+
+Returns the URL to the view page
 
 *`the_twitter_image_url`*
 
-Contains the full URL to the image, or the image thumbnail if the original image was large
+Returns the full URL to the image, or the image thumbnail if the original image was large
 
 *`the_twitter_full_image_url`*
 
-Contains the full URL to the full-sized image, if there is one
-
-*`the_twitter_image`*
-
-Returns HTML to display the image and a link to the full-sized image if it exists, with Lightbox rel tags.
+Returns the URL to the full-sized image, if one exists, or false otherwise
 
 *`the_twitter_image_title`*
 
@@ -96,11 +112,42 @@ The title of the image
 
 *`the_twitter_image_date`*
 
-The date (timestamp) of the image
+The date (timestamp) of the image - use date() to configure the display
 
 *`the_twitter_image_author`*
 
 The associated Twitter account
+
+*`the_twitter_image`*
+
+Returns HTML to display the image and a link to the full-sized image if it exists, with Lightbox rel tags.
+
+= Loop Tags =
+
+*`query_twitter_images`*
+
+Search for Twitter images
+
+Available parameters (passed as associative array):
+
+     count                    Number of items to display
+     id                       Single ID (eg 'abcde') of one image to display, or multiple IDs separated by commas (abcde,fghij)
+     author                   Comma-separated list of Twitter account names to limit results to
+
+
+*`has_twitter_images`*
+
+Use with loop: Determine if there are more images
+
+*`next_twitter_image`*
+
+Use with loop: Get the next image
+
+= Creating a Single Template =
+
+By default, this plugin will use the standard post template ('single.php').  However, if you wish, you can create a 
+custom template to display hosted images.  The template should be called 'twitter-image-host.php', located within your
+current theme directory.
 
 Creating a template to use this information is fairly straightforward if you have just a little knowledge of HTML or PHP:
 
@@ -108,13 +155,41 @@ Creating a template to use this information is fairly straightforward if you hav
  2. Copy an existing template - `single.php` is usually a good candidate - and call it `twitter-image-host.php`.
  3. Open up `twitter_image_host.php`, and delete everything that looks post-related: This usually includes everything between
     the `have_posts` call and the matching `endif`, and may include some other surrounding content like an 'Edit this post' link.
- 4. Replace that which you have just deleted with something like the following:
+ 4. Replace that which you have just deleted with something that uses the 'single entry' template tags above, like the following:
 
         <?php echo the_twitter_image() ?>
         <h1 class="center"><?php echo the_twitter_image_title() ?></h1>
-        <p class="center">From <a href="http://twitter.com/<?php echo the_twitter_image_author() ?>"> <?php echo the_twitter_image_author() ?></a></p>
+        <p class="center">From <a href="http://twitter.com/<?php echo the_twitter_image_author() ?>"> <?php echo the_twitter_image_author() ?> on <?php echo date('F jS, Y', the_twitter_image_date()) ?></a></p>
 
  5. Save the file, add some content (see the 'Posting Images' section), and see how it looks.
+
+= Using Template Tags in a Loop =
+
+Just like the WordPress Loop template tags, the template tags provided by this plugin can be used to display multiple posted entries.
+This can be used to create a custom page template that lists all submitted entries, with more flexibility than that offered by the shortcode.
+
+Use begins with a call to `query_twitter_images()`, possibly with an argument to configure the search.  If the result is true, then the loop begins,
+conditional upon `has_twitter_images()`, and starting with `next_twitter_image()` to load the next entry.  The single template tags can then be used
+to customise the display of each entry.
+
+Here is an example of use:
+
+
+      <?php if ( query_twitter_images() ) : ?>
+          <?php while ( has_twitter_images() ) : next_twitter_image(); ?>
+              <div class="item entry">
+                <div class="itemhead">
+                  <h1><a href="<?php echo the_twitter_image_permalink() ?>" rel="bookmark"><?php echo the_twitter_image_title(); ?></a></h1>
+                  <div class="date"><?php echo date('F jS, Y', the_twitter_image_date()) ?></div>
+                </div>
+      
+                <?php echo the_twitter_image() ?>
+                <p class="center">From <a href="http://twitter.com/<?php echo the_twitter_image_author() ?>"><?php echo the_twitter_image_author() ?></a></p>
+                </div>
+          <?php endwhile; ?>
+      <?php else : ?>
+          <p>There are no Twitter images.</p>
+      <?php endif; ?>
 
 == Posting Images ==
 
@@ -123,10 +198,10 @@ Enter a title for your image, your Twitter account details, and select your imag
 
 To access this facility from an application, use the access point http://your-blog-url/twitter-image-host.
 
-The API is the same as that of [img.ly](http://img.ly/pages/API).
+The API is more-or-less the same as that of [TweetPic](http://twitpic.com/api.do), [img.ly](http://img.ly/pages/API), etc.
 
 To post from Tweetie 2 for iPhone, visit Tweetie's settings, and within *Services, Image Service*, select 'Custom', then
-enter http://your-blog.com/twitter-image-host/upload
+enter `http://your-blog.com/twitter-image-host/upload`
 
 For Mac users, an Automator service has been created to upload images by right-clicking on a file in Finder, then selecting
 a context menu item.  This service can be downloaded from the [plugin's homepage](http://atastypixel.com/blog/wordpress/plugins/twitter-image-host).
@@ -134,12 +209,13 @@ a context menu item.  This service can be downloaded from the [plugin's homepage
 == Making the URL even shorter ==
 
 If you run Wordpress from a sub-directory (for example, http://your-site.com/blog), then the short URLs generated by this plugin will
-look like http://your-site/blog/xxxxx.  You can remove that 'blog' component via a little `.htaccess` trickery.
+look like `http://your-site/blog/xxxxx`.  You can remove that 'blog' component via a little `.htaccess` trickery.
 
 Here's how:
 
 1. Create and open a new file in your site's webroot called ".htaccess". If there's one already there, just open that up and prepare to edit at the bottom.
 2. Add the following, replacing 'blog' with the real subdirectory under which Wordpress is installed:
+
         <IfModule mod_rewrite.c>
         RewriteEngine On
         RewriteBase /
@@ -160,6 +236,7 @@ Here's how:
 
 = 0.5 =
  * Implemented a widget and shortcode to display uploaded images (see documentation)
+ * Implemented loop-style template tags to create custom pages for displaying entries
 
 = 0.4.4 =
  * Fix to HTML submission form for WP installations within a sub-directory
@@ -188,6 +265,9 @@ Here's how:
  * Initial release
  
 == Upgrade Notice ==
+
+= 0.5 =
+This is a major release that introduces a widget and shortcode to display entries
 
 = 0.4.4 =
 This update fixes the HTML image submission form for WP installations within a sub-directory
