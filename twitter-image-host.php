@@ -56,6 +56,11 @@ function the_twitter_image_title() {
     return $GLOBALS['__twitter_image_host_data']['title'];
 }
 
+function the_twitter_image_date() {
+    if ( !$GLOBALS['__twitter_image_host_data'] ) return false;
+    return $GLOBALS['__twitter_image_host_data']['date'];
+}
+
 function the_twitter_image_author() {
     if ( !$GLOBALS['__twitter_image_host_data'] ) return false;
     return $GLOBALS['__twitter_image_host_data']['author'];
@@ -259,7 +264,7 @@ function twitter_image_host_widget($args, $params) {
     $id = $params['number'];
     $allOptions = get_option('twitter_image_host_widget');
     if ( !$allOptions ) $allOptions = array();
-    $options = &$allOptions[$id];
+    $options = array_merge(twitter_image_host_widget_shortcode_defaults(), $allOptions[$id]);
     
     echo $args['before_widget'];
     if ( $options['title'] ) {
@@ -277,11 +282,15 @@ function twitter_image_host_widget($args, $params) {
  * Shortcode function
  *
  *  Available parameters:
- *      count           Number of items to display
- *      view            Image thumbnail view: squares, proportional, or large
- *      author          Comma-separated list of Twitter account names to limit results to
- *      columns         Number of columns of images to display 
- *      lightbox        'true' to use Lightbox/Thickbox
+ *      count                    Number of items to display
+ *      id                       Single ID (eg 'abcde') of one image to display, or multiple IDs separated by commas (abcde,fghij)
+ *      view                     Image thumbnail view: squares, proportional, large or custom
+ *      custom_thumbnail_width   Custom width for thumbnails, when 'view' is 'custom'
+ *      custom_thumbnail_height  Custom width for thumbnails, when 'view' is 'custom'
+ *      custom_thumbnail_crop    Whether to crop custom thumbnails
+ *      author                   Comma-separated list of Twitter account names to limit results to
+ *      columns                  Number of columns of images to display 
+ *      lightbox                 'true' to use Lightbox/Thickbox
  *
  * @param options Attributes from shortcode
  * @author Michael Tyson
@@ -289,7 +298,7 @@ function twitter_image_host_widget($args, $params) {
  * @since 0.5
  **/
 function twitter_image_host_images_shortcode($options) {
-    $options = array_map('html_entity_decode', $options);
+    $options = array_merge(twitter_image_host_widget_shortcode_defaults(), array_map('html_entity_decode', $options));
     ob_start();
     
     $items = twitter_image_host_all_items($options);
@@ -387,6 +396,7 @@ function twitter_image_host_setup($name) {
         "tag" => $tag,
         "numeric_tag" => base_convert($tag, 36, 10),
         "name" => $name, 
+        "date" => filemtime(IMAGE_HOST_FOLDER."/$name"),
         "title" => trim($title), 
         "author" => trim($author), 
         "full" => $full);
@@ -416,7 +426,7 @@ function twitter_image_host_response($tag, $url, $userid=null, $statusid=null) {
 /**
  * Load all posted images
  *
- * @return Array of objects, each representing an item with properties id, page, thumbnail, image, title, author
+ * @return Array of objects, each representing an item
  * @param options Options associative array
  * @author Michael Tyson
  * @package Twitter Image Host
@@ -425,19 +435,29 @@ function twitter_image_host_response($tag, $url, $userid=null, $statusid=null) {
 function twitter_image_host_all_items($options) {
 
     $authors = (trim($options['author']) ? array_map('trim', explode(',', $options['author'])) : null);
+    $ids = (trim($options['id']) ? array_map('trim', explode(',', $options['id'])) : null);
     
     if ( !($dir = @opendir(IMAGE_HOST_FOLDER)) ) return array();
-    $items = array();
+    $files = array();
     while (($file = readdir($dir))) {
-        if ( !preg_match('/^([a-z0-9]{5})\.(jpg|jpeg|png|gif)$/i', $file, $matches) ) continue;
-
+        if ( !preg_match('/^([a-z0-9]{5})\.(jpg|jpeg|png|gif)$/i', $file) ) continue;
+        $files[] = $file;
+    }
+    
+    usort($files, create_function('$a, $b', 'return filemtime(IMAGE_HOST_FOLDER."/$a") < filemtime(IMAGE_HOST_FOLDER."/$b");'));
+    
+    foreach ( $files as $file ) {
+        preg_match('/^([a-z0-9]{5})\.(jpg|jpeg|png|gif)$/i', $file, $matches);
         $id = $matches[1];
         $extension = $matches[2];
         $title = $author = $full = $thumbnail = $view = null;
         
+        if ( $ids && !in_array($id, $ids) ) continue; 
+        
         if ( file_exists(IMAGE_HOST_FOLDER."/$id.meta") ) {
             list($title, $author) = file(IMAGE_HOST_FOLDER."/$id.meta");
         }
+
         if ( $authors && !in_array($author, $authors) ) continue; 
 
         if ( file_exists(IMAGE_HOST_FOLDER."/$id-full.$extension") ) {
@@ -445,13 +465,16 @@ function twitter_image_host_all_items($options) {
         }
         
         $view = ($options['view'] ? $options['view'] : 'squares');
-        if ( file_exists(IMAGE_HOST_FOLDER."/$id-thumb-$view.$extension") ) {
-            $thumbnail = "$id-thumb-$view.$extension";
+        $suffix = ($view == 'custom' 
+                    ? 'custom-'.$options['custom_thumbnail_width'].'x'.$options['custom_thumbnail_height'].($options['custom_thumbnail_crop']=='true'?'-crop':'')
+                    : $view);
+        if ( file_exists(IMAGE_HOST_FOLDER."/$id-thumb-$suffix.$extension") ) {
+            $thumbnail = "$id-thumb-$suffix.$extension";
         }
         
         if ( !$thumbnail ) {
             require_once(ABSPATH . 'wp-admin/includes/image.php' );
-            $thumbnail = "$id-thumb-$view.$extension";
+            $thumbnail = "$id-thumb-$suffix.$extension";
             switch ( $view ) {
                 case 'large':
                     $thumbnail = $file;
@@ -460,10 +483,14 @@ function twitter_image_host_all_items($options) {
                     $new_file = image_resize(IMAGE_HOST_FOLDER."/".($full ? $full : $file), IMAGE_HOST_MAX_PROPORTIONAL_THUMB_WIDTH, IMAGE_HOST_MAX_PROPORTIONAL_THUMB_HEIGHT);
                     rename($new_file, IMAGE_HOST_FOLDER."/$thumbnail");
                     break;
+                case 'custom':
+                    $new_file = image_resize(IMAGE_HOST_FOLDER."/".($full ? $full : $file), $options['custom_thumbnail_width'], $options['custom_thumbnail_height'], $options['custom_thumbnail_crop']=='true');
+                    rename($new_file, IMAGE_HOST_FOLDER."/$thumbnail");
+                    break;
                 case 'squares':
+                default:
                     $new_file = image_resize(IMAGE_HOST_FOLDER."/".($full ? $full : $file), IMAGE_HOST_SQUARE_THUMB_WIDTH, IMAGE_HOST_SQUARE_THUMB_HEIGHT, true);
                     rename($new_file, IMAGE_HOST_FOLDER."/$thumbnail");
-                default:
                     break;
             }
         }
@@ -480,6 +507,7 @@ function twitter_image_host_all_items($options) {
         
         if ( $options['count'] && count($items) == $options['count'] ) break;
     }
+    
     return $items;
 }
 
@@ -684,14 +712,17 @@ function twitter_image_host_init() {
  * @since 0.1
  * @author Michael Tyson
  **/
-function twitter_image_host_widget_defaults() {
+function twitter_image_host_widget_shortcode_defaults() {
     return array(
-        'title'       =>  __('Twitter Images'),
-        'count'       => 10,
-        'columns'     => '',
-        'view'        => 'squares',
-        'author'      => '',
-        'lightbox'    => false
+        'title'                   =>  __('Twitter Images'),
+        'count'                   => 10,
+        'columns'                 => '',
+        'view'                    => 'squares',
+        'custom_thumbnail_width'  => 75,
+        'custom_thumbnail_height' => 75,
+        'custom_thumbnail_crop'   => true,
+        'author'                  => '',
+        'lightbox'                => false
     );
 }
 
@@ -747,7 +778,7 @@ function twitter_image_host_widget_control_update() {
 			continue;
 		}
 		
-		$fields = array_keys(twitter_image_host_widget_defaults());
+		$fields = array_keys(twitter_image_host_widget_shortcode_defaults());
 		
 		unset($options[$number]);
 		foreach ( $fields as $field ) {
@@ -782,11 +813,13 @@ function twitter_image_host_widget_control($params=null) {
     $id = $params['number'];
     $options = get_option('twitter_image_host_widget');
     if ( $id == -1 ) {
-        $options = twitter_image_host_widget_defaults(); 
+        $options = twitter_image_host_widget_shortcode_defaults(); 
         $id = '%i%';
     } else {
         $options = $options[$id];
     }
+    
+    $options = array_merge(twitter_image_host_widget_shortcode_defaults(), $options);
     
     $title       = htmlspecialchars($options['title']);
     $author      = htmlspecialchars($options['author']);
@@ -794,6 +827,9 @@ function twitter_image_host_widget_control($params=null) {
     $count       = (int)$options['count'];
     $columns     = $options['columns'];
     $lightbox    = $options['lightbox'];
+    $custom_thumbnail_width     = $options['custom_thumbnail_width'];
+    $custom_thumbnail_height    = $options['custom_thumbnail_height'];
+    $custom_thumbnail_crop = $options['custom_thumbnail_crop'];
     
     ?>
     <p>
@@ -816,6 +852,19 @@ function twitter_image_host_widget_control($params=null) {
         <label for="twitter_image_host_widget_<?php echo $id ?>_view_proportional"><?php _e('View as proportional thumbnails') ?></label><br/>
         <input type="radio" id="twitter_image_host_widget_<?php echo $id ?>_view_large" name="twitter_image_host_widget[<?php echo $id ?>][view]" value="large" <?php echo ($view=='large'?'checked':'') ?> />
         <label for="twitter_image_host_widget_<?php echo $id ?>_view_large"><?php _e('View as large thumbnails') ?></label><br/>
+        <input type="radio" id="twitter_image_host_widget_<?php echo $id ?>_view_custom" name="twitter_image_host_widget[<?php echo $id ?>][view]" value="custom" <?php echo ($view=='custom'?'checked':'') ?> />
+        <label for="twitter_image_host_widget_<?php echo $id ?>_view_custom"><?php _e('View as custom-sized thumbnails:') ?></label><br/>
+        <blockquote style="border-left: 1px dotted #aaa; padding-left:8px;">
+            <small><b>Custom settings:</b></small><br/>
+            <input type="text" id="twitter_image_host_widget_<?php echo $id ?>_custom_thumbnail_width" name="twitter_image_host_widget[<?php echo $id ?>][custom_thumbnail_width]" size="5" value="<?php echo $custom_thumbnail_width ?>" />
+            <label for="twitter_image_host_widget_<?php echo $id ?>_custom_thumbnail_width"><?php _e('Width') ?></label><br/>
+            <input type="text" id="twitter_image_host_widget_<?php echo $id ?>_custom_thumbnail_height" name="twitter_image_host_widget[<?php echo $id ?>][custom_thumbnail_height]" size="5" value="<?php echo $custom_thumbnail_height ?>" />
+            <label for="twitter_image_host_widget_<?php echo $id ?>_custom_thumbnail_height"><?php _e('Height') ?></label><br/>
+            <input type="radio" id="twitter_image_host_widget_<?php echo $id ?>_custom_thumbnail_crop_yes" name="twitter_image_host_widget[<?php echo $id ?>][custom_thumbnail_crop]" value="true" <?php echo ($custom_thumbnail_crop=='true'?'checked':'') ?> />
+            <label for="twitter_image_host_widget_<?php echo $id ?>_custom_thumbnail_crop_yes"><?php _e('Crop to exact size') ?></label><br/>
+            <input type="radio" id="twitter_image_host_widget_<?php echo $id ?>_custom_thumbnail_crop_no" name="twitter_image_host_widget[<?php echo $id ?>][custom_thumbnail_crop]" value="false" <?php echo ($custom_thumbnail_crop!='true'?'checked':'') ?> />
+            <label for="twitter_image_host_widget_<?php echo $id ?>_custom_thumbnail_crop_no"><?php _e('Fit within dimensions') ?></label>
+        </blockquote>
     </p>
     <p>
         <label for="twitter_image_host_widget_<?php echo $id ?>_columns"><?php _e('Number of columns to display:') ?></label>

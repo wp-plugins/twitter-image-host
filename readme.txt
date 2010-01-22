@@ -54,11 +54,15 @@ Twitter Image Host provides a 'twitter-images' shortcode to display images you h
 
 Available parameters:
 
-      count           Number of items to display
-      view            Image thumbnail view: squares, proportional, or large
-      author          Comma-separated list of Twitter account names to limit results to
-      columns         Number of columns of images to display 
-      lightbox        'true' to use Lightbox/Thickbox
+      count                    Number of items to display
+      id                       Single ID (eg 'abcde') of one image to display, or multiple IDs separated by commas (abcde,fghij)
+      view                     Image thumbnail view: squares, proportional, large or custom
+      custom_thumbnail_width   Custom width for thumbnails, when 'view' is 'custom'
+      custom_thumbnail_height  Custom width for thumbnails, when 'view' is 'custom'
+      custom_thumbnail_crop    Whether to crop custom thumbnails
+      author                   Comma-separated list of Twitter account names to limit results to
+      columns                  Number of columns of images to display 
+      lightbox                 'true' to use Lightbox/Thickbox
 
 Example:
 
@@ -89,6 +93,10 @@ Returns HTML to display the image and a link to the full-sized image if it exist
 *`the_twitter_image_title`*
 
 The title of the image
+
+*`the_twitter_image_date`*
+
+The date (timestamp) of the image
 
 *`the_twitter_image_author`*
 
