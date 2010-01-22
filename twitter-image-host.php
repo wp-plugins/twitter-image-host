@@ -676,11 +676,14 @@ function twitter_image_host_initialise_displayed_image_state() {
     $post->post_date = date( 'Y-m-d H:i:s', $__displayed_twitter_image->date );
     $post->post_content = the_twitter_image();
     $post->post_title = $__displayed_twitter_image->title;
+    $post->guid = $__displayed_twitter_image->page;
+    $post->post_status = 'publish';
+    $post->post_date_gmt = $__displayed_twitter_image->date - (get_option('gmt_offset') * 3600);
     $post->comment_status = (get_option('twitter_image_host_comments_open', true) ? 'open' : 'closed');
     $post->ping_status = (get_option('twitter_image_host_comments_open', true) ? 'open' : 'closed');
     wp_cache_add($post->ID, $post, 'posts');
     $posts = array($post);
-    $__displayed_twitter_image->post = $post;
+    $__displayed_twitter_image->post = &$post;
     
     $wp_query->queried_object = $post;
     $wp_query->post_count = 1;
@@ -704,13 +707,16 @@ function twitter_image_host_initialise_displayed_image_state() {
 function twitter_image_host_posts_filter($posts) {
     global $__displayed_twitter_image;
     if ( !isset($__displayed_twitter_image) ) return $posts;
-    return usort(create_function('$a, $b', 'return strtotime($a->post_date) > strtotime($b->post_date);'), 
-                 array_merge($posts, array($__displayed_twitter_image->post)));
+    
+    // Inject pretend post
+    $array = array_merge((array)$posts, array($__displayed_twitter_image->post));
+    usort($array, create_function('$a, $b', 'return strtotime($a->post_date) < strtotime($b->post_date);'));
+    return $array;
 }
 
-function twitter_image_host_post_link($permalink, $post=null) {
+function twitter_image_host_post_link($permalink, $post) {
     global $__displayed_twitter_image;
-    if ( !isset($__displayed_twitter_image) ) return $permalink;
+    if ( !isset($__displayed_twitter_image) || (is_object($post) ? $post->ID : $post) != $__displayed_twitter_image->numeric_id ) return $permalink;
     return $__displayed_twitter_image->page;
 }
 
@@ -730,15 +736,15 @@ function twitter_image_host_trackback_url_filter($link) {
     return trailingslashit(get_option('siteurl')) . 'wp-trackback.php?p=' . $__displayed_twitter_image->numeric_id;
 }
 
-function twitter_image_host_comments_open_filter($open, $post=null) {
+function twitter_image_host_comments_open_filter($open, $post) {
     global $__displayed_twitter_image;
-    if ( !isset($__displayed_twitter_image) ) return $open;
+    if ( !isset($__displayed_twitter_image) || (is_object($post) ? $post->ID : $post) != $__displayed_twitter_image->numeric_id ) return $open;
     return get_option('twitter_image_host_comments_open', true);
 }
 
-function twitter_image_host_edit_post_link_filter($link, $post=null) {
+function twitter_image_host_edit_post_link_filter($link, $post) {
     global $__displayed_twitter_image;
-    if ( !isset($__displayed_twitter_image) ) return $link;
+    if ( !isset($__displayed_twitter_image) || (is_object($post) ? $post->ID : $post) != $__displayed_twitter_image->numeric_id ) return $link;
     return '';
 }
 
@@ -1100,17 +1106,17 @@ add_action( 'template_redirect', 'twitter_image_host_template_redirect' );
 add_action( 'admin_menu', 'twitter_image_host_initialise_displayed_image_admin' );
 
 add_filter( 'the_posts', 'twitter_image_host_posts_filter' );
-add_filter( 'page_link', 'twitter_image_host_post_link');
-add_filter( 'post_link', 'twitter_image_host_post_link');
+add_filter( 'page_link', 'twitter_image_host_post_link', 10, 2);
+add_filter( 'post_link', 'twitter_image_host_post_link', 10, 2);
 add_filter( 'post_comments_feed_link', 'twitter_image_host_post_comments_feed_link_filter' );
 add_filter( 'trackback_url', 'twitter_image_host_trackback_url_filter' );
-add_filter( 'comments_open', 'twitter_image_host_comments_open_filter' );
-add_filter( 'pings_open', 'twitter_image_host_comments_open_filter' );
-add_filter( 'edit_post_link', 'twitter_image_host_edit_post_link_filter' );
-add_filter( 'author_link', 'twitter_image_host_author_link_filter' );
+add_filter( 'comments_open', 'twitter_image_host_comments_open_filter', 10, 2 );
+add_filter( 'pings_open', 'twitter_image_host_comments_open_filter', 10, 2 );
+add_filter( 'edit_post_link', 'twitter_image_host_edit_post_link_filter', 10, 2 );
+add_filter( 'author_link', 'twitter_image_host_author_link_filter', 10, 3 );
 add_filter( 'the_author', 'twitter_image_host_the_author_filter' );
 add_filter( 'query', 'twitter_image_host_query_filter' );
-add_filter( 'comment_post_redirect', 'twitter_image_host_comment_redirect_filter' );
+add_filter( 'comment_post_redirect', 'twitter_image_host_comment_redirect_filter', 10, 2 );
 add_filter( 'get_comments_number', 'twitter_image_host_get_comments_number_filter' );
 
 add_shortcode('twitter-images', 'twitter_image_host_images_shortcode');
