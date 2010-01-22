@@ -423,13 +423,13 @@ function twitter_image_host_response($tag, $url, $userid=null, $statusid=null) {
  * @since 0.5
  **/
 function twitter_image_host_all_items($options) {
-    
+
     $authors = (trim($options['author']) ? array_map('trim', explode(',', $options['author'])) : null);
     
-    if ( !($dir = opendir(IMAGE_HOST_FOLDER)) ) return array();
+    if ( !($dir = @opendir(IMAGE_HOST_FOLDER)) ) return array();
     $items = array();
     while (($file = readdir($dir))) {
-        if ( !preg_match('/^([a-z0-9]{5})\.({jpg|jpeg|png|gif})$/i', $file, $matches) ) continue;
+        if ( !preg_match('/^([a-z0-9]{5})\.(jpg|jpeg|png|gif)$/i', $file, $matches) ) continue;
 
         $id = $matches[1];
         $extension = $matches[2];
