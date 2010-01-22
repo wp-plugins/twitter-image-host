@@ -595,24 +595,28 @@ function twitter_image_host_find_items($options) {
             switch ( $view ) {
                 case 'proportional':
                     $new_file = image_resize(IMAGE_HOST_FOLDER."/".($full ? $full : $file), IMAGE_HOST_MAX_PROPORTIONAL_THUMB_WIDTH, IMAGE_HOST_MAX_PROPORTIONAL_THUMB_HEIGHT);
-                    rename($new_file, IMAGE_HOST_FOLDER."/$thumbnail");
                     break;
                 case 'custom':
                     $new_file = image_resize(IMAGE_HOST_FOLDER."/".($full ? $full : $file), $options['custom_thumbnail_width'], $options['custom_thumbnail_height'], $options['custom_thumbnail_crop']=='true');
-                    rename($new_file, IMAGE_HOST_FOLDER."/$thumbnail");
                     break;
                 case 'squares':
                     $new_file = image_resize(IMAGE_HOST_FOLDER."/".($full ? $full : $file), IMAGE_HOST_SQUARE_THUMB_WIDTH, IMAGE_HOST_SQUARE_THUMB_HEIGHT, true);
-                    rename($new_file, IMAGE_HOST_FOLDER."/$thumbnail");
                     break;
                 case 'large':
                 default:
-                    $thumbnail = $file;
                     break;
             }
+            
+            if ( !$new_file || is_wp_error($new_file) || !file_exists($new_file) )
+                $thumbnail = $file;
+            else
+                rename($new_file, IMAGE_HOST_FOLDER."/$thumbnail");
         }
         
+        if ( !$thumbnail ) $thumbnail = $file;
+        
         $baseurl = trailingslashit(get_option('siteurl'));
+        
         $item = new StdClass;
         $item->id             = $id;
         $item->page           = $baseurl.$id;

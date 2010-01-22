@@ -90,7 +90,11 @@ As well as the shortcode, you can also use call `twitter_image_host_images()` fr
 produce the same output.  Pass the same arguments as the shortcode as associative array values:
 
       <h3>Recently submitted images</h3>
-      <?php twitter_image_host_images(array('columns' => 6, 'lightbox' => true)); ?>
+      <?php twitter_image_host_images(array('author' => the_twitter_image_author(), 'columns' => 6, 'lightbox' => true)); ?>
+
+Tip: Use this in the `twitter-image-host.php` template (see 'Creating a Single Template', below) to display
+other posted images when viewing an image.  Use `the_twitter_image_author()` to filter the list, to show
+only other submissions by the same Twitter account as the one of the currently displayed image.
 
 == Template Tags ==
 
