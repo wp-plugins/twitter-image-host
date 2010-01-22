@@ -83,7 +83,14 @@ Available parameters:
 Example:
 
       [twitter-images columns=4 lightbox="true"]
-  
+
+== PHP function ==
+
+As well as the shortcode, you can also use call `twitter_image_host_images()` from within a template to
+produce the same output.  Pass the same arguments as the shortcode as associative array values:
+
+      <h3>Recently submitted images</h3>
+      <?php twitter_image_host_images(array('columns' => 6, 'lightbox' => true)); ?>
 
 == Template Tags ==
 
@@ -235,7 +242,7 @@ Here's how:
 == Changelog ==
 
 = 0.5 =
- * Implemented a widget and shortcode to display uploaded images (see documentation)
+ * Implemented a widget, shortcode and standalone PHP function to display uploaded images (see documentation)
  * Implemented loop-style template tags to create custom pages for displaying entries
 
 = 0.4.4 =

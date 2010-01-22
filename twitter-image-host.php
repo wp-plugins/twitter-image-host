@@ -433,6 +433,36 @@ function twitter_image_host_images_shortcode($options) {
 }
 
 
+
+/**
+ * PHP function
+ *
+ *  Available parameters:
+ *      count                    Number of items to display
+ *      id                       Single ID (eg 'abcde') of one image to display, or multiple IDs separated by commas (abcde,fghij)
+ *      view                     Image thumbnail view: squares, proportional, large or custom
+ *      custom_thumbnail_width   Custom width for thumbnails, when 'view' is 'custom'
+ *      custom_thumbnail_height  Custom width for thumbnails, when 'view' is 'custom'
+ *      custom_thumbnail_crop    Whether to crop custom thumbnails
+ *      author                   Comma-separated list of Twitter account names to limit results to
+ *      columns                  Number of columns of images to display 
+ *      lightbox                 'true' to use Lightbox/Thickbox
+ *
+ * @param options Attributes from shortcode
+ * @author Michael Tyson
+ * @package Twitter Image Host
+ * @since 0.5
+ **/
+function twitter_image_host_images($options) {
+    $options = array_merge(twitter_image_host_widget_shortcode_defaults(), $options);
+    $items = twitter_image_host_find_items($options);
+    twitter_image_host_render_items($items, $options);
+}
+
+
+
+
+
 // ========================
 // =      Renderers       =
 // ========================
