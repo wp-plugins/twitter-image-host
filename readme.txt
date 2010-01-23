@@ -4,7 +4,7 @@ Donate link: http://atastypixel.com/blog/wordpress/plugins/twitter-image-host
 Tags: images,twitter,hosting
 Requires at least: 2.6
 Tested up to: 2.9
-Stable tag: 0.4.4
+Stable tag: 0.5
 
 Host Twitter images from your blog and keep your traffic, rather than using a service like Twitpic and losing your viewers.
 
@@ -14,7 +14,7 @@ Keep your traffic in the family!  Host Twitter images on your own site, with sup
 resizing and thumbnailing with Lightbox.
 
 Twitter doesn’t yet come with its own inline image support, so we tend to be limited to using image hosting services, 
-and linking to them with short URLs. So, services like Tweetpic host the image, and we direct traffic to them in return.
+and linking to them with short URLs. So, services like Twitpic host the image, and we direct traffic to them in return.
 
 Better to take advantage of that traffic, and host images on your own site.  This way, viewers come to your site, instead
 of someone else's!
@@ -45,6 +45,14 @@ be able to upload via a context menu item in the Finder!
 
 If you find Twitter Image Host useful, please consider buying some awesome [Mac/iPhone software](http://atastypixel.com/products). Then
 tell all your friends.
+
+== On Comments and Trackbacks ==
+
+This plugin uses a series of filters to make submitted entries mimic ordinary posts, so that they can be commented upon, and
+trackbacks left.  This system is not yet perfected, so while commenting and trackbacks are supported, some quirks exist.  For example,
+comments and trackbacks that are left are not visible in the comment manager in WP's administration.
+
+This situation may change as the plugin matures, but for now, please be aware of the limitation.
 
 == Frequently Asked Questions ==
 
@@ -90,7 +98,7 @@ As well as the shortcode, you can also use call `twitter_image_host_images()` fr
 produce the same output.  Pass the same arguments as the shortcode as associative array values:
 
       <h3>Recently submitted images</h3>
-      <?php twitter_image_host_images(array('author' => the_twitter_image_author(), 'columns' => 6, 'lightbox' => true)); ?>
+      <?php twitter_image_host_images(array('author' => 'ATastyPixel', 'columns' => 6, 'lightbox' => true)); ?>
 
 Tip: Use this in the `twitter-image-host.php` template (see 'Creating a Single Template', below) to display
 other posted images when viewing an image.  Use `the_twitter_image_author()` to filter the list, to show
@@ -170,7 +178,10 @@ Creating a template to use this information is fairly straightforward if you hav
 
         <?php echo the_twitter_image() ?>
         <h1 class="center"><?php echo the_twitter_image_title() ?></h1>
-        <p class="center">From <a href="http://twitter.com/<?php echo the_twitter_image_author() ?>"> <?php echo the_twitter_image_author() ?> on <?php echo date('F jS, Y', the_twitter_image_date()) ?></a></p>
+        <p class="center">
+        	From <a href="http://twitter.com/<?php echo the_twitter_image_author() ?>"><?php echo the_twitter_image_author() ?></a>
+        	 on <?php echo date('F jS, Y', the_twitter_image_date()) ?>
+      	</p>
 
  5. Save the file, add some content (see the 'Posting Images' section), and see how it looks.
 
