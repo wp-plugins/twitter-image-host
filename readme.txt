@@ -256,6 +256,10 @@ Here's how:
 
 == Changelog ==
 
+= 0.5.1 =
+
+ * Bugfix for when content folder doesn't exist
+
 = 0.5 =
  * Implemented a widget, shortcode and standalone PHP function to display uploaded images (see documentation)
  * Implemented loop-style template tags to create custom pages for displaying entries
