@@ -10,6 +10,9 @@
     	}
     	do_action('admin_head');
     ?>
+    
+    <script src="<?php echo site_url( '/wp-includes/js/jquery/jquery.js' )?>" type="text/javascript" charset="utf-8"></script>
+    <script src="<?php echo WP_PLUGIN_URL?>/twitter-image-host/form.js" type="text/javascript" charset="utf-8"></script>
     <style type="text/css" media="screen">
         .form {
             width: 300px;
@@ -26,6 +29,19 @@
             width: 100px;
             margin: 0 auto;
             margin-top: 50px;
+        }
+        
+        #character-count {
+        	float: right;
+        	font-size: 1.7em;
+        	position: relative;
+        	top: -21px;
+        	right: -55px;
+        	color: #cbcbcb;
+        }
+        
+        #character-count.illegal {
+            color: #B96B6B;
         }
     </style>
 </head>
@@ -60,8 +76,12 @@
           <input type="file" name="media" />
       </p>
       <p>
+          <?php $available_characters = (140 - strlen(" ".(get_option('twitter_image_host_override_url_prefix') ? get_option('twitter_image_host_override_url_prefix') : get_option('siteurl')).'/12345')); ?>
           <input type="checkbox" name="tweet" <?php echo ($_REQUEST['tweet'] ? 'checked="checked"' : '') ?> /> Post to Twitter too, with optional message:<br/>
-          <input type="text" name="message" value="<?php echo $_REQUEST['message'] ?>" class="text" />
+          <input type="text" name="message" value="<?php echo $_REQUEST['message'] ?>" class="text" id="tweet" /><span id="character-count"><?php echo $available_characters - (isset($_REQUEST['message']) ? strlen($_REQUEST['message']) : 0) ?></span>
+          <script type="text/javascript" charset="utf-8">
+            var available_characters = <?php echo $available_characters ?>;
+          </script>
       </p>
       <input type="hidden" name="from_form" value="true" />
       <input type="submit" class="button" value="Post" />

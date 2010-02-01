@@ -4,7 +4,7 @@ Donate link: http://atastypixel.com/blog/wordpress/plugins/twitter-image-host
 Tags: images,twitter,hosting
 Requires at least: 2.6
 Tested up to: 2.9
-Stable tag: 0.5
+Stable tag: 0.5.1
 
 Host Twitter images from your blog and keep your traffic, rather than using a service like Twitpic and losing your viewers.
 
@@ -258,6 +258,7 @@ Here's how:
 
 = 0.5.1 =
 
+ * Added character counter to HTML submission form
  * Bugfix for when content folder doesn't exist
 
 = 0.5 =
