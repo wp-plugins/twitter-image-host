@@ -4,7 +4,7 @@ Donate link: http://atastypixel.com/blog/wordpress/plugins/twitter-image-host
 Tags: images,twitter,hosting
 Requires at least: 2.6
 Tested up to: 2.9
-Stable tag: 0.5.2
+Stable tag: 0.5.3
 
 Host Twitter images from your blog and keep your traffic, rather than using a service like Twitpic and losing your viewers.
 
@@ -256,6 +256,10 @@ Here's how:
 
 == Changelog ==
 
+= 0.5.3 =
+
+ * Avoid adding duplicate images - if a duplicate is detected, just returns the URL to the original image
+
 = 0.5.2 =
 
  * Fallback to index.php template if 'single' template can't be found
@@ -296,6 +300,9 @@ Here's how:
  * Initial release
  
 == Upgrade Notice ==
+
+= 0.5.3 =
+This release prevents duplicate uploads - if a duplicate is detected, just returns the URL to the original image
 
 = 0.5 =
 This is a major release that introduces a widget and shortcode to display entries

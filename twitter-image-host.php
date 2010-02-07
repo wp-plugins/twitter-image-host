@@ -3,7 +3,7 @@
 Plugin Name: Twitter Image Host
 Plugin URI: http://atastypixel.com/blog/wordpress/plugins/twitter-image-host
 Description: Host Twitter images from your blog and keep your traffic, rather than using a service like Twitpic and losing your viewers
-Version: 0.5.2
+Version: 0.5.3
 Author: Michael Tyson
 Author URI: http://atastypixel.com/blog
 */
@@ -273,45 +273,59 @@ function twitter_image_host_server($command) {
         $tag = strtolower(substr(str_replace("=","",base64_encode(rand())), -5));
     } while ( file_exists(IMAGE_HOST_FOLDER."/$tag.$extension") );
     
-    // Accept file
-    if ( !file_exists(IMAGE_HOST_FOLDER) ) @mkdir(IMAGE_HOST_FOLDER, 0755);
-    if ( !move_uploaded_file($_FILES['media']['tmp_name'], IMAGE_HOST_FOLDER."/$tag.$extension") ) {
-        twitter_image_host_error(INTERNAL_ERROR, "Couldn't place uploaded file");
-        return;
-    }
-    
-    list($width,$height) = @getimagesize(IMAGE_HOST_FOLDER."/$tag.$extension");
-    
-    if ( !$width ) {
-        @unlink(IMAGE_HOST_FOLDER."/$tag.$extension");
-        twitter_image_host_error(INVALID_IMAGE, "Invalid image");
-        return;
-    }
-    
-    $maxwidth = get_option('twitter_image_host_max_width', 500);
-    $maxheight = get_option('twitter_image_host_max_height', 500);
-    
-    if ( $width > $maxwidth || $height > $maxheight ) {
-        require_once(ABSPATH . 'wp-admin/includes/image.php' );
-        $full = IMAGE_HOST_FOLDER."/$tag-full.$extension";
-        rename(IMAGE_HOST_FOLDER."/$tag.$extension", $full);
-        $new_file = image_resize($full, $maxwidth, $maxheight);
-        rename($new_file, IMAGE_HOST_FOLDER."/$tag.$extension");
-
-        if ( $width > IMAGE_HOST_MAX_FULL_IMAGE_WIDTH || $height > IMAGE_HOST_MAX_FULL_IMAGE_HEIGHT ) {
-            $new_file = image_resize($full, IMAGE_HOST_MAX_FULL_IMAGE_WIDTH, IMAGE_HOST_MAX_FULL_IMAGE_HEIGHT);
-            rename($new_file, $full);
+    // Look for duplicates
+    $md5 = md5_file($_FILES['media']['tmp_name']);
+    if ( ($dir=@opendir(IMAGE_HOST_FOLDER)) )
+    while ( ($file=@readdir($dir)) ) {
+        if ( preg_match('/^([a-z0-9]+)\.meta$/', $file, $matches) && ($info=file(IMAGE_HOST_FOLDER."/$file")) && trim($info[2]) == $md5 ) {
+            $duplicate = $matches[1];
+            break;
         }
     }
+    if ( isset($duplicate) ) {
+        $tag = $duplicate;
+    } else {
     
-    $title = ( $_REQUEST['title'] ? $_REQUEST['title'] : ( $_REQUEST['message'] ? $_REQUEST['message'] : $_FILES['media']['name'] ) );
+        // Accept file
+        if ( !file_exists(IMAGE_HOST_FOLDER) ) @mkdir(IMAGE_HOST_FOLDER, 0755);
+        if ( !move_uploaded_file($_FILES['media']['tmp_name'], IMAGE_HOST_FOLDER."/$tag.$extension") ) {
+            twitter_image_host_error(INTERNAL_ERROR, "Couldn't place uploaded file");
+            return;
+        }
     
-    // Write metadata
-    if ( ($fd = fopen(IMAGE_HOST_FOLDER."/$tag.meta", "w")) ) {
-        fwrite($fd, $title."\n".$_REQUEST['username']);
-        fclose($fd);
+        list($width,$height) = @getimagesize(IMAGE_HOST_FOLDER."/$tag.$extension");
+    
+        if ( !$width ) {
+            @unlink(IMAGE_HOST_FOLDER."/$tag.$extension");
+            twitter_image_host_error(INVALID_IMAGE, "Invalid image");
+            return;
+        }
+    
+        $maxwidth = get_option('twitter_image_host_max_width', 500);
+        $maxheight = get_option('twitter_image_host_max_height', 500);
+    
+        if ( $width > $maxwidth || $height > $maxheight ) {
+            require_once(ABSPATH . 'wp-admin/includes/image.php' );
+            $full = IMAGE_HOST_FOLDER."/$tag-full.$extension";
+            rename(IMAGE_HOST_FOLDER."/$tag.$extension", $full);
+            $new_file = image_resize($full, $maxwidth, $maxheight);
+            rename($new_file, IMAGE_HOST_FOLDER."/$tag.$extension");
+
+            if ( $width > IMAGE_HOST_MAX_FULL_IMAGE_WIDTH || $height > IMAGE_HOST_MAX_FULL_IMAGE_HEIGHT ) {
+                $new_file = image_resize($full, IMAGE_HOST_MAX_FULL_IMAGE_WIDTH, IMAGE_HOST_MAX_FULL_IMAGE_HEIGHT);
+                rename($new_file, $full);
+            }
+        }
+    
+        $title = ( $_REQUEST['title'] ? $_REQUEST['title'] : ( $_REQUEST['message'] ? $_REQUEST['message'] : $_FILES['media']['name'] ) );
+    
+        // Write metadata
+        if ( ($fd = fopen(IMAGE_HOST_FOLDER."/$tag.meta", "w")) ) {
+            fwrite($fd, $title."\n".$_REQUEST['username']."\n".$md5);
+            fclose($fd);
+        }
     }
-    
+        
     // Generate URL
     $url = preg_replace('/\/$/', '', (get_option('twitter_image_host_override_url_prefix') ? get_option('twitter_image_host_override_url_prefix') : get_option('siteurl'))).'/'.$tag;
     
