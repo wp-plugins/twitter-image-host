@@ -46,14 +46,6 @@ be able to upload via a context menu item in the Finder!
 If you find Twitter Image Host useful, please consider buying some awesome [Mac/iPhone software](http://atastypixel.com/products). Then
 tell all your friends.
 
-== On Comments and Trackbacks ==
-
-This plugin uses a series of filters to make submitted entries mimic ordinary posts, so that they can be commented upon, and
-trackbacks left.  This system is not yet perfected, so while commenting and trackbacks are supported, some quirks exist.  For example,
-comments and trackbacks that are left are not visible in the comment manager in WP's administration.
-
-This situation may change as the plugin matures, but for now, please be aware of the limitation.
-
 == Frequently Asked Questions ==
 
 = I get "Couldn't place uploaded file" messages =
