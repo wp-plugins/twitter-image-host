@@ -4,7 +4,7 @@ Donate link: http://atastypixel.com/blog/wordpress/plugins/twitter-image-host
 Tags: images,twitter,hosting
 Requires at least: 2.6
 Tested up to: 2.9
-Stable tag: 0.5.4
+Stable tag: 0.5.5
 
 Host Twitter images from your blog and keep your traffic, rather than using a service like Twitpic and losing your viewers.
 
@@ -247,6 +247,11 @@ Here's how:
 3. In Twitter Image Host settings, set the 'Override URL Prefix' option to 'http://your-site.com/'
 
 == Changelog ==
+
+
+= 0.5.5 =
+
+ * Better error reporting for failed uploads
 
 = 0.5.4 =
 
