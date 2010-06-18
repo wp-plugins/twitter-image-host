@@ -4,7 +4,7 @@ Donate link: http://atastypixel.com/blog/wordpress/plugins/twitter-image-host
 Tags: images,twitter,hosting
 Requires at least: 2.6
 Tested up to: 2.9
-Stable tag: 0.5.5
+Stable tag: 0.5.6
 
 Host Twitter images from your blog and keep your traffic, rather than using a service like Twitpic and losing your viewers.
 
@@ -248,6 +248,9 @@ Here's how:
 
 == Changelog ==
 
+= 0.5.6 =
+
+ * Fixed bug that causes 'not found' error when appending any parameters to the URL, or a trailing slash
 
 = 0.5.5 =
 
@@ -301,6 +304,9 @@ Here's how:
  * Initial release
  
 == Upgrade Notice ==
+
+= 0.5.6 =
+This release fixes a bug that causes a 'not found' error when appending any parameters to the URL, or a trailing slash
 
 = 0.5.4 =
 This release fixes a bug that prevented filtering based on author from working
