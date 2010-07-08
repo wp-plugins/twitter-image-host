@@ -3,8 +3,8 @@
 Donate link: http://atastypixel.com/blog/wordpress/plugins/twitter-image-host
 Tags: images,twitter,hosting
 Requires at least: 2.6
-Tested up to: 2.9
-Stable tag: 0.5.6
+Tested up to: 3.0
+Stable tag: 0.5.7
 
 Host Twitter images from your blog and keep your traffic, rather than using a service like Twitpic and losing your viewers.
 
@@ -214,8 +214,10 @@ To access this facility from an application, use the access point http://your-bl
 
 The API is more-or-less the same as that of [TweetPic](http://twitpic.com/api.do), [img.ly](http://img.ly/pages/API), etc.
 
-To post from Tweetie 2 for iPhone, visit Tweetie's settings, and within *Services, Image Service*, select 'Custom', then
-enter `http://your-blog.com/twitter-image-host/upload`
+To post from Twitter (Tweetie 2) for iPhone, visit Twitter/Tweetie's settings, and within *Services, Image Service*, select 'Custom', then
+enter `http://your-blog.com/twitter-image-host/upload`.  Note that version 3.0.1 of Twitter has a bug that prevents it sending the username and password.
+For this version, you must use `http://your-blog.com/twitter-image-host/upload?username=YourTwitterName&password=YourPassword`, at your discretion.  Version
+0.5.7 of Twitter Image Host now supports this.
 
 For Mac users, an Automator service has been created to upload images by right-clicking on a file in Finder, then selecting
 a context menu item.  This service can be downloaded from the [plugin's homepage](http://atastypixel.com/blog/wordpress/plugins/twitter-image-host).
@@ -247,6 +249,10 @@ Here's how:
 3. In Twitter Image Host settings, set the 'Override URL Prefix' option to 'http://your-site.com/'
 
 == Changelog ==
+
+= 0.5.7 =
+
+ * Support for Twitter for iPhone 3.0.1 bug (see 'Posting Images' section in readme)
 
 = 0.5.6 =
 
@@ -305,6 +311,9 @@ Here's how:
  
 == Upgrade Notice ==
 
+= 0.5.7 =
+Twitter for iPhone 3.0.1 has a bug that prevents it from sending username and password.  This update supports a workaround; see "Posting Images" in the readme for details.
+ 
 = 0.5.6 =
 This release fixes a bug that causes a 'not found' error when appending any parameters to the URL, or a trailing slash
 
