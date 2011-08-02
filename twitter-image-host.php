@@ -225,26 +225,27 @@ function twitter_image_host_server($command) {
     require_once('class.rsp.php');
     require_once('lib/twitteroauth.php');    
     
-    $user = get_userdata();
-    $access_token = get_option('twitter_image_host_oauth_' . $user->user_login);
+    global $current_user;
+    get_currentuserinfo();
+    $access_token = get_option('twitter_image_host_oauth_' . $current_user->user_login);
     
     if ( isset($_REQUEST['oauth_verifier']) ) {
         // Process login response from Twitter OAuth
         $connection = new TwitterOAuth(get_option('twitter_image_host_oauth_consumer_key'), 
                                        get_option('twitter_image_host_oauth_consumer_secret'), 
-                                       get_option('twitter_image_host_oauth_token_' . $user->user_login),
-                                       get_option('twitter_image_host_oauth_token_secret_' . $user->user_login));
+                                       get_option('twitter_image_host_oauth_token_' . $current_user->user_login),
+                                       get_option('twitter_image_host_oauth_token_secret_' . $current_user->user_login));
 
         if ( empty($access_token) ) {
-            delete_option('twitter_image_host_oauth_token_' . $user->user_login);
-            delete_option('twitter_image_host_oauth_token_secret_' . $user->user_login);
+            delete_option('twitter_image_host_oauth_token_' . $current_user->user_login);
+            delete_option('twitter_image_host_oauth_token_secret_' . $current_user->user_login);
             twitter_image_host_error(NOT_LOGGED_IN, "Authentication error");
             return;
         }
         
-        update_option('twitter_image_host_oauth_' . $user->user_login, $access_token);
-        delete_option('twitter_image_host_oauth_token_' . $user->user_login);
-        delete_option('twitter_image_host_oauth_token_secret_' . $user->user_login);
+        update_option('twitter_image_host_oauth_' . $current_user->user_login, $access_token);
+        delete_option('twitter_image_host_oauth_token_' . $current_user->user_login);
+        delete_option('twitter_image_host_oauth_token_secret_' . $current_user->user_login);
 
         header('Location: ' . get_admin_url() . 'edit.php?page=twitter_image_host_posts');
         return;
@@ -366,7 +367,7 @@ function twitter_image_host_server($command) {
             @unlink(IMAGE_HOST_FOLDER."/$tag.meta");
             
             if ( $connection->http_code == 401 ) {
-                delete_option('twitter_image_host_oauth_' . $user->user_login);
+                delete_option('twitter_image_host_oauth_' . $current_user->user_login);
                 twitter_image_host_error(NOT_LOGGED_IN, 'Twitter authentication error');
             } else {
                 twitter_image_host_error(TWITTER_OFFLINE, "Error posting to Twitter (".($connection->http_code ? "response code ".$connection->http_code : "couldn't connect or unexpected response").")");
@@ -1112,7 +1113,8 @@ function twitter_image_host_options_page() {
  * @since 0.6
  **/
 function twitter_image_host_posts_page() {
-    $user = get_userdata();
+    global $current_user;
+    get_currentuserinfo();
     
     if ( isset($_REQUEST['login'] ) ) {
         // Perform OAuth login
@@ -1128,8 +1130,8 @@ function twitter_image_host_posts_page() {
         $connection = new TwitterOAuth(get_option('twitter_image_host_oauth_consumer_key'), get_option('twitter_image_host_oauth_consumer_secret'));
         $request_token = $connection->getRequestToken();
         
-        update_option('twitter_image_host_oauth_token_' . $user->user_login, $request_token['oauth_token']);
-        update_option('twitter_image_host_oauth_token_secret_' . $user->user_login, $request_token['oauth_token_secret']);
+        update_option('twitter_image_host_oauth_token_' . $current_user->user_login, $request_token['oauth_token']);
+        update_option('twitter_image_host_oauth_token_secret_' . $current_user->user_login, $request_token['oauth_token_secret']);
         
         if ( $connection->http_code == 200 ) {
             $url = $connection->getAuthorizeURL($request_token['oauth_token']);
@@ -1145,7 +1147,7 @@ function twitter_image_host_posts_page() {
         return;
     }
     
-    $access_token = get_option('twitter_image_host_oauth_' . $user->user_login);
+    $access_token = get_option('twitter_image_host_oauth_' . $current_user->user_login);
 
     ?>
     <style type="text/css" media="screen">
