@@ -3,7 +3,7 @@
 Plugin Name: Twitter Image Host
 Plugin URI: http://atastypixel.com/blog/wordpress/plugins/twitter-image-host
 Description: Host Twitter images from your blog and keep your traffic, rather than using a service like Twitpic and losing your viewers
-Version: 0.5.7
+Version: 0.6
 Author: Michael Tyson
 Author URI: http://atastypixel.com/blog
 */
@@ -33,6 +33,7 @@ define('IMAGE_HOST_SQUARE_THUMB_WIDTH', 75);
 define('IMAGE_HOST_SQUARE_THUMB_HEIGHT', 75);
 define('IMAGE_HOST_MAX_PROPORTIONAL_THUMB_WIDTH', 127);
 define('IMAGE_HOST_MAX_PROPORTIONAL_THUMB_HEIGHT', 127);
+
 
 
 // =============================
@@ -119,9 +120,9 @@ function the_twitter_image_author() {
  * @since 0.1
  **/
 function the_twitter_image() {
-    return (the_twitter_full_image_url() ? '<a href="'.the_twitter_full_image_url().'" rel="lightbox">' : '') .
+    return (the_twitter_full_image_url() && get_option('twitter_image_host_link_thumbnails') ? '<a href="'.the_twitter_full_image_url().'" rel="lightbox">' : '') .
             '<img src="'.the_twitter_image_url().'" class="aligncenter twitter_image" alt="'.the_twitter_image_title().'" title="'.the_twitter_image_title().'" />'.
-           (the_twitter_full_image_url() ? '</a>' : '');
+           (the_twitter_full_image_url() && get_option('twitter_image_host_link_thumbnails') ? '</a>' : '');
 }
 
 /**
@@ -221,18 +222,48 @@ function twitter_image_host_run() {
  * @since 0.1
  **/
 function twitter_image_host_server($command) {
+    require_once('class.rsp.php');
+    require_once('lib/twitteroauth.php');    
+    
+    $user = get_userdata();
+    $access_token = get_option('twitter_image_host_oauth_' . $user->user_login);
+    
+    if ( isset($_REQUEST['oauth_verifier']) ) {
+        // Process login response from Twitter OAuth
+        $connection = new TwitterOAuth(get_option('twitter_image_host_oauth_consumer_key'), 
+                                       get_option('twitter_image_host_oauth_consumer_secret'), 
+                                       get_option('twitter_image_host_oauth_token_' . $user->user_login),
+                                       get_option('twitter_image_host_oauth_token_secret_' . $user->user_login));
 
-    foreach ( array("username", "password", "message", "title") as $var ) {
+        if ( empty($access_token) ) {
+            delete_option('twitter_image_host_oauth_token_' . $user->user_login);
+            delete_option('twitter_image_host_oauth_token_secret_' . $user->user_login);
+            twitter_image_host_error(NOT_LOGGED_IN, "Authentication error");
+            return;
+        }
+        
+        update_option('twitter_image_host_oauth_' . $user->user_login, $access_token);
+        delete_option('twitter_image_host_oauth_token_' . $user->user_login);
+        delete_option('twitter_image_host_oauth_token_secret_' . $user->user_login);
+
+        header('Location: ' . get_admin_url() . 'edit.php?page=twitter_image_host_posts');
+        return;
+    }
+
+    foreach ( array("key", "message", "title") as $var ) {
         $_REQUEST[$var] = stripslashes($_REQUEST[$var]);
     }
 
     if ( !$command ) {
-        // No command: Assume this is a person navigating here and show them a form
-        include('form.inc.php');
+        // No command: Redirect to admin page
+        header('Location: ' . get_admin_url() . 'edit.php?page=twitter_image_host_posts');
         return;
     }
     
-    include('class.rsp.php');
+    if ( $_REQUEST["key"] != get_option('twitter_image_host_access_key') ) {
+        twitter_image_host_error(INVALID_REQUEST, 'Incorrect key');
+        return;
+    }
     
     // Sanity check
     if ( !in_array($command, array("upload", "uploadAndPost")) ) {
@@ -241,30 +272,6 @@ function twitter_image_host_server($command) {
     }
     if ( !isset($_FILES['media']) || !$_FILES['media']['tmp_name'] || !file_exists($_FILES['media']['tmp_name']) ) {
         twitter_image_host_error(IMAGE_NOT_FOUND, 'No image provided');
-        return;
-    }
-    if ( !$_REQUEST["username"] || !$_REQUEST["password"] ) {
-        twitter_image_host_error(INVALID_USER_OR_PASS, 'Invalid username or password');
-        return;
-    }
-    
-    $accounts = split(',', get_option('twitter_image_host_twitter_accounts'));
-    if ( !in_array($_REQUEST["username"], $accounts) ) {
-        twitter_image_host_error(UNAUTHORIZED_ACCOUNT, "Unauthorised Twitter account");
-        return;
-    }
-    
-    // Check credentials with Twitter
-    include('class.twitter.php');
-    $t = new twitter;
-    $t->username = $_REQUEST["username"];
-    $t->password = $_REQUEST["password"];
-    if ( $t->directMessages() === false ) {
-        if ( $t->responseInfo['http_code'] == 401 ) {
-            twitter_image_host_error(INVALID_USER_OR_PASS, 'Invalid username or password');
-        } else {
-            twitter_image_host_error(TWITTER_OFFLINE, "Twitter may be offline (".($t->responseInfo['http_code'] ? "response code ".$t->responseInfo['http_code'] : "couldn't connect").")");
-        }
         return;
     }
     
@@ -322,7 +329,7 @@ function twitter_image_host_server($command) {
     
         // Write metadata
         if ( ($fd = fopen(IMAGE_HOST_FOLDER."/$tag.meta", "w")) ) {
-            fwrite($fd, $title."\n".$_REQUEST['username']."\n".$md5);
+            fwrite($fd, $title."\n".($access_token ? $access_token['screen_name'] : $_REQUEST['username'])."\n".$md5);
             fclose($fd);
         }
     }
@@ -331,31 +338,45 @@ function twitter_image_host_server($command) {
     $url = preg_replace('/\/$/', '', (get_option('twitter_image_host_override_url_prefix') ? get_option('twitter_image_host_override_url_prefix') : get_option('siteurl'))).'/'.$tag;
     
     // Post to twitter if asked to
-    if ( $command == 'uploadAndPost' || ($_REQUEST['from_form'] && $_REQUEST['tweet']) ) {
+    if ( isset($_REQUEST['from_admin']) && $_REQUEST['tweet'] ) {
         $status = ($_REQUEST['message'] ? $_REQUEST['message'].' '.$url : $url);
         if ( strlen($status) > 140 ) {
             $count = strlen($status)-140;
-            twitter_image_host_error(TWEET_TOO_LONG, "Tweet is too long by $count characters");
             @unlink(IMAGE_HOST_FOLDER."/$tag.$extension");
             @unlink(IMAGE_HOST_FOLDER."/$tag-full.$extension");
             @unlink(IMAGE_HOST_FOLDER."/$tag.meta");
+            twitter_image_host_error(TWEET_TOO_LONG, "Tweet is too long by $count characters");
             return;
         }
-        $response = $t->update($status);
-        if ( !$response ) {
-            if ( $t->responseInfo['http_code'] == 401 ) {
-                twitter_image_host_error(INVALID_USER_OR_PASS, 'Invalid username or password');
+        
+        if ( empty($access_token) ) {
+            @unlink(IMAGE_HOST_FOLDER."/$tag.$extension");
+            @unlink(IMAGE_HOST_FOLDER."/$tag-full.$extension");
+            @unlink(IMAGE_HOST_FOLDER."/$tag.meta");
+            twitter_image_host_error(NOT_LOGGED_IN, "Not logged in to Twitter");
+            return;
+        }
+        
+        $connection = new TwitterOAuth(get_option('twitter_image_host_oauth_consumer_key'), get_option('twitter_image_host_oauth_consumer_secret'), $access_token['oauth_token'], $access_token['oauth_token_secret']);
+        $response = $connection->post('statuses/update', array('status' => $status));
+        
+        if ( $connection->http_code != 200 || !$response->id ) {
+            @unlink(IMAGE_HOST_FOLDER."/$tag.$extension");
+            @unlink(IMAGE_HOST_FOLDER."/$tag-full.$extension");
+            @unlink(IMAGE_HOST_FOLDER."/$tag.meta");
+            
+            if ( $connection->http_code == 401 ) {
+                delete_option('twitter_image_host_oauth_' . $user->user_login);
+                twitter_image_host_error(NOT_LOGGED_IN, 'Twitter authentication error');
             } else {
-                twitter_image_host_error(TWITTER_OFFLINE, "Error posting to Twitter (".($t->responseInfo['http_code'] ? "response code ".$t->responseInfo['http_code'] : "couldn't connect").")");
+                twitter_image_host_error(TWITTER_OFFLINE, "Error posting to Twitter (".($connection->http_code ? "response code ".$connection->http_code : "couldn't connect or unexpected response").")");
             }
             
-            @unlink(IMAGE_HOST_FOLDER."/$tag.$extension");
-            @unlink(IMAGE_HOST_FOLDER."/$tag-full.$extension");
-            @unlink(IMAGE_HOST_FOLDER."/$tag.meta");
             return;
         }
-        $userid = $response->user->id;
-        $statusid = $response->id;
+        
+        $userid = $response->user->id_str;
+        $statusid = $response->id_str;
     }
     
     // Report success
@@ -364,23 +385,20 @@ function twitter_image_host_server($command) {
 }
 
 function twitter_image_host_error($code, $message) {
-    if ( $_REQUEST['from_form'] ) {
-        $error = $message;
-        include('form.inc.php');
-    } else {
-        RSP::error($code, $message);
+    if ( isset($_REQUEST['from_admin']) ) {
+        header('Location: ' . get_admin_url() . 'edit.php?page=twitter_image_host_posts&error=' . urlencode($message));
+        return;
     }
+    RSP::error($code, $message);
 }
 
 function twitter_image_host_response($tag, $url, $userid=null, $statusid=null) {
-    if ( $_REQUEST['from_form'] ) {
-        include('form.inc.php');
-    } else {
-        RSP::response($tag, $url, $userid, $statusid);
+    if ( isset($_REQUEST['from_admin']) ) {
+        header('Location: ' . get_admin_url() . 'edit.php?page=twitter_image_host_posts&tag=' . urlencode($tag) . '&url=' . urlencode($url) . '&userid=' . urlencode($userid) . '&statusid=' . urlencode($statusid));
+        return;
     }
+    RSP::response($tag, $url, $userid, $statusid);
 }
-
-
 
 /**
  * Widget
@@ -706,8 +724,8 @@ function twitter_image_host_initialise_displayed_image_state() {
     $post->guid = $__displayed_twitter_image->page;
     $post->post_status = 'publish';
     $post->post_date_gmt = $__displayed_twitter_image->date - (get_option('gmt_offset') * 3600);
-    $post->comment_status = (get_option('twitter_image_host_comments_open', true) ? 'open' : 'closed');
-    $post->ping_status = (get_option('twitter_image_host_comments_open', true) ? 'open' : 'closed');
+    $post->comment_status = 'closed';
+    $post->ping_status = 'closed';
     wp_cache_add($post->ID, $post, 'posts');
     $posts = array($post);
     $__displayed_twitter_image->post = &$post;
@@ -717,14 +735,7 @@ function twitter_image_host_initialise_displayed_image_state() {
     $wp_query->posts[0] = $post;
     $wp_query->is_404 = false;
     
-    if ( $wp_query->is_feed ) {
-        // Support comment feed
-        $wp_query->comment_count = twitter_image_host_get_comments_number_filter(0);
-        $wp_query->comments = $comments = get_comments( array('post_id' => $post->ID, 'status' => 'approve', 'order' => 'ASC') );
-        $wp_query->is_comment_feed = true;
-    } else {
-        $wp_query->is_single = true;
-    }
+    $wp_query->is_single = true;
 }
 
 // ==================================
@@ -747,28 +758,6 @@ function twitter_image_host_post_link($permalink, $post) {
     return $__displayed_twitter_image->page;
 }
 
-function twitter_image_host_post_comments_feed_link_filter($link) {
-    global $__displayed_twitter_image;
-    if ( !isset($__displayed_twitter_image) ) return $link;
-    if ( '' != get_option('permalink_structure') ) {
-        return trailingslashit(get_option('home')) . "comments/feed/?p=".$__displayed_twitter_image->numeric_id;
-    } else {
-        return trailingslashit(get_option('home')) . "?feed=comments-rss2&amp;p=".$__displayed_twitter_image->numeric_id;
-    }
-}
-
-function twitter_image_host_trackback_url_filter($link) {
-    global $__displayed_twitter_image;
-    if ( !isset($__displayed_twitter_image) ) return $link;
-    return trailingslashit(get_option('siteurl')) . 'wp-trackback.php?p=' . $__displayed_twitter_image->numeric_id;
-}
-
-function twitter_image_host_comments_open_filter($open, $post) {
-    global $__displayed_twitter_image;
-    if ( !isset($__displayed_twitter_image) || (is_object($post) ? $post->ID : $post) != $__displayed_twitter_image->numeric_id ) return $open;
-    return get_option('twitter_image_host_comments_open', true);
-}
-
 function twitter_image_host_edit_post_link_filter($link, $post) {
     global $__displayed_twitter_image;
     if ( !isset($__displayed_twitter_image) || (is_object($post) ? $post->ID : $post) != $__displayed_twitter_image->numeric_id ) return $link;
@@ -785,38 +774,6 @@ function twitter_image_host_the_author_filter($author) {
     global $__displayed_twitter_image;
     if ( !isset($__displayed_twitter_image) ) return $author;
     return $__displayed_twitter_image->author;
-}
-
-function twitter_image_host_query_filter($query) {
-    global $wpdb;
-    $post_status_query = "SELECT post_status, comment_status FROM $wpdb->posts WHERE ID = ";
-    
-    if ( strpos($_SERVER['REQUEST_URI'], '/wp-comments-post.php') !== false ) {
-
-        if ( strlen($query) > strlen($post_status_query) && !strncmp($query, $post_status_query, strlen($post_status_query)) ) {
-            $name = base_convert(substr($query, strlen($post_status_query)), 10, 36);
-            if ( !twitter_image_host_initialise_displayed_image($name) ) {
-                return $query;
-            }
-            
-            return 'SELECT "published" as post_status, "open" as comment_status';
-        }
-    }
-    
-    return $query;
-}
-
-function twitter_image_host_comment_redirect_filter($location, $comment) {
-    global $__displayed_twitter_image;
-    if ( !isset($__displayed_twitter_image) ) return $location;
-    return $__displayed_twitter_image->page.'#comments';
-}
-
-function twitter_image_host_get_comments_number_filter($count) {
-    global $__displayed_twitter_image;
-    if ( !isset($__displayed_twitter_image) ) return $count;
-    return count(get_comments( array('post_id' => $__displayed_twitter_image->numeric_id, 'status' => 'approve') ));
-    
 }
 
 
@@ -1047,8 +1004,24 @@ function twitter_image_host_widget_control($params=null) {
 
 
 // =======================
-// =       Options       =
+// =        Admin        =
 // =======================
+
+/** 
+ * Initialisation
+ *
+ * @author Michael Tyson
+ * @package Twitter Image Host
+ * @since 0.6
+ */
+function twitter_image_host_admin_init() {
+    if ( !get_option('twitter_image_host_access_key') ) {
+        update_option('twitter_image_host_access_key', strtolower(substr(str_replace("=","",base64_encode(rand())), -5)));
+    }
+    
+    
+    wp_enqueue_script('twitter-image-host-form', WP_PLUGIN_URL.'/twitter-image-host/form.js', 'jquery');
+}
 
 /**
  * Settings page
@@ -1062,25 +1035,41 @@ function twitter_image_host_options_page() {
 	<div class="wrap">
 	<h2>Twitter Image Host</h2>
 	
+	<div style="margin: 30px; border: 1px solid #ccc; padding: 20px; width: 400px;">
+	    <p>The API access point for your Twitter Image Host installation (for use with Twitter for iOS, etc) is:</p>
+	    <p><strong><?php bloginfo('url') ?>/twitter-image-host/upload?key=<?php echo get_option('twitter_image_host_access_key'); ?></strong></p>
+    </div>
+	
 	<form method="post" action="options.php">
 	<?php wp_nonce_field('update-options'); ?>
 	
 	<table class="form-table">
-
-		<tr valign="top">
-    		<th scope="row"><?php _e('Authorized Twitter accounts:') ?></th>
-    		<td>
-    			<input type="text" id="twitter_image_host_twitter_accounts" name="twitter_image_host_twitter_accounts" value="<?php echo get_option('twitter_image_host_twitter_accounts') ?>" /><br />
-    			<?php echo _e('Separate multiple accounts with commas', 'twitter-image-host'); ?>
-    		</td>
-    	</tr>
     	
-    	<tr valign="top">
-    		<th scope="row"><?php _e('Commenting:') ?></th>
-    		<td>
-    			<input type="checkbox" name="twitter_image_host_comments_open" <?php echo (get_option('twitter_image_host_comments_open', true) ? 'checked="checked"' : '') ?> /> Allow comments and trackbacks
-    		</td>
-    	</tr>
+        <tr valign="top">
+            <th scope="row"><?php _e('Twitter API keys:')?></th>
+            <td>
+                <?php if ( !get_option('twitter_image_host_oauth_consumer_key') ) : ?>
+                <table><tr><td>
+                <?php endif; ?>
+                
+                <?php _e('OAuth Consumer Key:') ?><br />
+                <input type="text" id="twitter_image_host_oauth_consumer_key" name="twitter_image_host_oauth_consumer_key" value="<?php echo get_option('twitter_image_host_oauth_consumer_key') ?>" /><br />
+                <?php _e('OAuth Consumer Secret:') ?><br />
+                <input type="text" id="twitter_image_host_oauth_consumer_secret" name="twitter_image_host_oauth_consumer_secret" value="<?php echo get_option('twitter_image_host_oauth_consumer_secret') ?>" /><br />
+                </td>
+                
+                <?php if ( !get_option('twitter_image_host_oauth_consumer_key') ) : ?>
+                </td><td>
+                You can register for these at <a href="http://twitter.com/apps/new">http://twitter.com/apps/new</a>.
+                    <ul>
+                        <li>Application Type: <b>Browser</b></li>
+                        <li>Callback URL: <b><?php echo bloginfo('url').'/twitter-image-host'?></b></li>
+                        <li>Default Access type: <b>Read &amp; Write</b>
+                        <li>Tick "Yes, use Twitter for Login"</li>
+                    </ul>
+                </td></tr></table>
+                <?php endif; ?>
+        </tr>
     	
     	<tr valign="top">
     		<th scope="row"><?php _e('Image dimensions:') ?></th>
@@ -1089,7 +1078,7 @@ function twitter_image_host_options_page() {
     			<input type="text" name="twitter_image_host_max_width" value="<?php echo get_option('twitter_image_host_max_width', 500) ?>" /><br/>
     			Maximum height<br/>
     			<input type="text" name="twitter_image_host_max_height" value="<?php echo get_option('twitter_image_host_max_height', 500) ?>" /><br/>
-                <small>Images larger than this will be thumbnailed to this size</small>
+    			<input type="checkbox" name="twitter_image_host_link_thumbnails" <?php if ( get_option('twitter_image_host_link_thumbnails') ) echo "checked" ?>> Link to full-size images
     		</td>
     	</tr>
     	
@@ -1103,7 +1092,7 @@ function twitter_image_host_options_page() {
 	
 	</table>
 	<input type="hidden" name="action" value="update" />
-	<input type="hidden" name="page_options" value="twitter_image_host_twitter_accounts, twitter_image_host_comments_open, twitter_image_host_override_url_prefix" />
+	<input type="hidden" name="page_options" value="twitter_image_host_oauth_consumer_key, twitter_image_host_oauth_consumer_secret, twitter_image_host_max_width, twitter_image_host_max_height, twitter_image_host_link_thumbnails, twitter_image_host_override_url_prefix" />
 	
 	<p class="submit">
 	<input type="submit" name="Submit" value="<?php _e('Save Changes', 'twitter-image-host') ?>" />
@@ -1114,6 +1103,135 @@ function twitter_image_host_options_page() {
 	<?php
 }
 
+
+/**
+ * Posts page
+ *
+ * @author Michael Tyson
+ * @package Twitter Image Host
+ * @since 0.6
+ **/
+function twitter_image_host_posts_page() {
+    $user = get_userdata();
+    
+    if ( isset($_REQUEST['login'] ) ) {
+        // Perform OAuth login
+        if ( !get_option('twitter_image_host_oauth_consumer_key') ) {
+            // Not setup
+            echo '<html><body>Not set up. Please <a href="'.get_admin_url().'options-general.php?page=twitter_image_host_options">Configure Twitter Image Host</a>.</body></html>';
+            return;
+        }
+        
+        require_once('lib/twitteroauth.php');
+
+        // Redirect to Twitter for login
+        $connection = new TwitterOAuth(get_option('twitter_image_host_oauth_consumer_key'), get_option('twitter_image_host_oauth_consumer_secret'));
+        $request_token = $connection->getRequestToken();
+        
+        update_option('twitter_image_host_oauth_token_' . $user->user_login, $request_token['oauth_token']);
+        update_option('twitter_image_host_oauth_token_secret_' . $user->user_login, $request_token['oauth_token_secret']);
+        
+        if ( $connection->http_code == 200 ) {
+            $url = $connection->getAuthorizeURL($request_token['oauth_token']);
+            ?>
+            <script type="text/javascript">
+                document.location = "<?php echo $url ?>";
+            </script>
+            <p>Click <a href="<?php echo $url ?>">here</a> if you are not redirected within a few seconds.</p>
+            <?php
+        } else {
+            echo 'Could not connect to Twitter. Refresh the page or try again later. (Error code '.$connection->http_code.')';
+        }
+        return;
+    }
+    
+    $access_token = get_option('twitter_image_host_oauth_' . $user->user_login);
+
+    ?>
+    <style type="text/css" media="screen">
+        .form {
+            width: 300px;
+            margin: 0 auto;
+            margin-top: 50px;
+        }
+        
+        .form input.text {
+            width: 100%;
+        }
+        
+        .form .button {
+            display: block;
+            width: 100px;
+            margin: 0 auto;
+            margin-top: 50px;
+        }
+        
+        #character-count {
+        	float: right;
+        	font-size: 1.7em;
+        	position: relative;
+        	top: -21px;
+        	right: -55px;
+        	color: #cbcbcb;
+        }
+        
+        #character-count.illegal {
+            color: #B96B6B;
+        }
+    </style>
+    
+    <div class="wrap">
+    <h2>Twitter Image Host</h2>
+
+    <?php if ( $_REQUEST['url'] ) : ?>
+        <p>Your image has been uploaded<?php if ( $_REQUEST['statusid'] ) echo " and the <a href=\"http://twitter.com/".$access_token['screen_name']."/status/".$_REQUEST['statusid']."\">tweet</a> has been posted" ?>. The URL is <a href="<?php echo $_REQUEST['url']; ?>"><?php echo $_REQUEST['url']; ?></a>.
+
+        <p>Upload another:</p>
+    <?php elseif ( $_REQUEST['error'] ) : ?>
+        <div class="error">There was an error: <?php echo $_REQUEST['error']; ?></div>
+        <p>Try again:</p>
+    <?php endif; ?>
+    
+    <div class="form-wrap" style="width: 400px;">
+    <h3>Upload New Image</h3>
+    <form method="post" enctype="multipart/form-data" action="<?php echo trailingslashit(get_option('siteurl')) ?>twitter-image-host/upload">
+        <div class="form-field">
+        	<label for="title">Title</label> 
+        	<input name="title" id="title" type="text" value="<?php echo $_REQUEST['title'] ?>" size="40" /> 
+        	<p>If tweeting too, leave blank to be the same as tweet message below.</p> 
+        </div>
+        
+        <div class="form-field">
+        	<label for="media">Image</label> 
+            <input type="file" id="media" name="media" />
+        </div>
+
+        <div class="form-field">
+            <?php 
+            $post_available = (get_option('twitter_image_host_oauth_consumer_key') && !empty($access_token));
+            $available_characters = (140 - strlen(" ".(get_option('twitter_image_host_override_url_prefix') ? get_option('twitter_image_host_override_url_prefix') : get_option('siteurl')).'/12345')); 
+            ?>
+            <input type="checkbox" style="width: auto; float: left; margin-right: 10px;" name="tweet" <?php if ( !$post_available ) echo 'disabled' ?> <?php echo ($_REQUEST['tweet'] ? 'checked="checked"' : '') ?> /> Post to Twitter too, with optional message:<br/>
+            <input type="text" name="message" <?php if ( !$post_available ) echo 'disabled' ?> value="<?php echo $_REQUEST['message'] ?>" id="tweet" /><span id="character-count"><?php echo $available_characters - (isset($_REQUEST['message']) ? strlen($_REQUEST['message']) : 0) ?></span>
+            <script type="text/javascript" charset="utf-8">
+              var available_characters = <?php echo $available_characters ?>;
+            </script>
+            <?php if ( !$post_available ) : ?>
+                <?php if ( !get_option('twitter_image_host_oauth_consumer_key') ) : ?>
+                    <p><i><a href="<?php echo get_admin_url(); ?>options-general.php?page=twitter_image_host_options">Configure Twitter Image Host</a>, then log into Twitter to enable this feature.</i></p>
+                <?php else: ?>
+                    <p><i><a href="<?php echo get_admin_url() ?>edit.php?page=twitter_image_host_posts&amp;login">Log in to Twitter</a> to enable this feature.</i></p>
+                <?php endif; ?>
+            <?php endif; ?>
+        </div>
+        <input type="hidden" name="key" value="<?php echo get_option('twitter_image_host_access_key') ?>" />
+        <input type="hidden" name="from_admin" value="true" />
+        <input type="submit" class="button" value="Post" />
+    </form>
+    </div>
+    <?php
+}
+
 /**
  * Set up administration
  *
@@ -1122,28 +1240,22 @@ function twitter_image_host_options_page() {
  * @since 0.1
  */
 function twitter_image_host_initialise_displayed_image_admin() {
-	add_options_page( 'Twitter Image Host', 'Twitter Image Host', 5, __FILE__, 'twitter_image_host_options_page' );
+	add_options_page( 'Twitter Image Host', 'Twitter Image Host', 5, 'twitter_image_host_options', 'twitter_image_host_options_page' );
+	add_posts_page( 'Tweeted Images', 'Twitter Image Host', 5, 'twitter_image_host_posts', 'twitter_image_host_posts_page' );
 }
-
 
 add_action( 'init', 'twitter_image_host_init' );
 
 add_action( 'plugins_loaded', 'twitter_image_host_run' );
 add_action( 'template_redirect', 'twitter_image_host_template_redirect' );
 add_action( 'admin_menu', 'twitter_image_host_initialise_displayed_image_admin' );
+add_action( 'admin_init', 'twitter_image_host_admin_init' );
 
 add_filter( 'the_posts', 'twitter_image_host_posts_filter' );
 add_filter( 'page_link', 'twitter_image_host_post_link', 10, 2);
 add_filter( 'post_link', 'twitter_image_host_post_link', 10, 2);
-add_filter( 'post_comments_feed_link', 'twitter_image_host_post_comments_feed_link_filter' );
-add_filter( 'trackback_url', 'twitter_image_host_trackback_url_filter' );
-add_filter( 'comments_open', 'twitter_image_host_comments_open_filter', 10, 2 );
-add_filter( 'pings_open', 'twitter_image_host_comments_open_filter', 10, 2 );
 add_filter( 'edit_post_link', 'twitter_image_host_edit_post_link_filter', 10, 2 );
 add_filter( 'author_link', 'twitter_image_host_author_link_filter', 10, 3 );
 add_filter( 'the_author', 'twitter_image_host_the_author_filter' );
-add_filter( 'query', 'twitter_image_host_query_filter' );
-add_filter( 'comment_post_redirect', 'twitter_image_host_comment_redirect_filter', 10, 2 );
-add_filter( 'get_comments_number', 'twitter_image_host_get_comments_number_filter' );
 
 add_shortcode('twitter-images', 'twitter_image_host_images_shortcode');

@@ -6,13 +6,13 @@
  * Errors
  */
 define('INVALID_REQUEST', 1); 
-define('UNAUTHORIZED_ACCOUNT', 2);
+define('INCORRECT_ACCESS_KEY', 2);
 define('INTERNAL_ERROR', 3);
 define('TWITTER_OFFLINE', 4);
 define('TWEET_TOO_LONG', 5);
 define('TWITTER_POST_ERROR', 6);
 
-define('INVALID_USER_OR_PASS', 1001);
+define('NOT_LOGGED_IN', 1001);
 define('IMAGE_NOT_FOUND', 1002);
 define('INVALID_IMAGE', 1003);
 define('IMAGE_TOO_LARGE', 1004);
