@@ -2,7 +2,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: Twitter Image Host 0.6.1\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2011-08-04 18:18+0100\n"
+"POT-Creation-Date: 2011-08-04 22:12+0100\n"
 "PO-Revision-Date: \n"
 "Last-Translator: Michael Tyson <mike@tyson.id.au>\n"
 "Language-Team: Michael Tyson <michael@atastypixel.com>\n"
@@ -12,262 +12,343 @@ msgstr ""
 "X-Poedit-Language: English\n"
 "X-Poedit-SourceCharset: utf-8\n"
 "X-Poedit-KeywordsList: __;_e\n"
-"X-Poedit-Basepath: .\n"
-"X-Poedit-SearchPath-0: .\n"
+"X-Poedit-Basepath: ..\n"
+"X-Poedit-SearchPath-0: ..\n"
 
-#: twitter-image-host.php:244
+#: ../tags/0.1/twitter-image-host.php:395
+#: ../tags/0.2/twitter-image-host.php:456
+#: ../tags/0.3/twitter-image-host.php:456
+#: ../tags/0.4/twitter-image-host.php:456
+msgid "Authorized Twitter accounts:"
+msgstr ""
+
+#: ../tags/0.1/twitter-image-host.php:398
+#: ../tags/0.2/twitter-image-host.php:459
+#: ../tags/0.3/twitter-image-host.php:459
+#: ../tags/0.4/twitter-image-host.php:459
+msgid "Separate multiple accounts with commas"
+msgstr ""
+
+#: ../tags/0.1/twitter-image-host.php:403
+#: ../tags/0.2/twitter-image-host.php:464
+#: ../tags/0.3/twitter-image-host.php:464
+#: ../tags/0.4/twitter-image-host.php:464
+msgid "Commenting:"
+msgstr ""
+
+#: ../tags/0.1/twitter-image-host.php:410
+#: ../tags/0.2/twitter-image-host.php:471
+#: ../tags/0.3/twitter-image-host.php:471
+#: ../tags/0.4/twitter-image-host.php:471
+msgid "Image dimensions:"
+msgstr ""
+
+#: ../tags/0.1/twitter-image-host.php:421
+#: ../tags/0.2/twitter-image-host.php:482
+#: ../tags/0.3/twitter-image-host.php:482
+#: ../tags/0.4/twitter-image-host.php:482
+msgid "Override URL prefix:"
+msgstr ""
+
+#: ../tags/0.1/twitter-image-host.php:433
+#: ../tags/0.2/twitter-image-host.php:494
+#: ../tags/0.3/twitter-image-host.php:494
+#: ../tags/0.4/twitter-image-host.php:494
+msgid "Save Changes"
+msgstr ""
+
+#: ../tags/0.5/twitter-image-host.php:822
+#: ../tags/0.5.1/twitter-image-host.php:822
+#: ../tags/0.5.2/twitter-image-host.php:828
+#: ../tags/0.5.3/twitter-image-host.php:842
+msgid "Display images posted to Twitter"
+msgstr ""
+
+#: ../tags/0.5/twitter-image-host.php:824
+#: ../tags/0.5/twitter-image-host.php:858
+#: ../tags/0.5.1/twitter-image-host.php:824
+#: ../tags/0.5.1/twitter-image-host.php:858
+#: ../tags/0.5.2/twitter-image-host.php:830
+#: ../tags/0.5.2/twitter-image-host.php:864
+#: ../tags/0.5.3/twitter-image-host.php:844
+#: ../tags/0.5.3/twitter-image-host.php:878
+msgid "Twitter Images"
+msgstr ""
+
+#: ../tags/0.5/twitter-image-host.php:977
+#: ../tags/0.5.1/twitter-image-host.php:977
+#: ../tags/0.5.2/twitter-image-host.php:983
+#: ../tags/0.5.3/twitter-image-host.php:997
+msgid "Title:"
+msgstr ""
+
+#: ../tags/0.5/twitter-image-host.php:981
+#: ../tags/0.5.1/twitter-image-host.php:981
+#: ../tags/0.5.2/twitter-image-host.php:987
+#: ../tags/0.5.3/twitter-image-host.php:1001
+msgid "Limit to images from Twitter account(s):"
+msgstr ""
+
+#: ../tags/0.5/twitter-image-host.php:986
+#: ../tags/0.5.1/twitter-image-host.php:986
+#: ../tags/0.5.2/twitter-image-host.php:992
+#: ../tags/0.5.3/twitter-image-host.php:1006
+msgid "Number of items to show:"
+msgstr ""
+
+#: ../tags/0.5/twitter-image-host.php:991
+#: ../tags/0.5.1/twitter-image-host.php:991
+#: ../tags/0.5.2/twitter-image-host.php:997
+#: ../tags/0.5.3/twitter-image-host.php:1011
+msgid "View as square thumbnails"
+msgstr ""
+
+#: ../tags/0.5/twitter-image-host.php:993
+#: ../tags/0.5.1/twitter-image-host.php:993
+#: ../tags/0.5.2/twitter-image-host.php:999
+#: ../tags/0.5.3/twitter-image-host.php:1013
+msgid "View as proportional thumbnails"
+msgstr ""
+
+#: ../tags/0.5/twitter-image-host.php:995
+#: ../tags/0.5.1/twitter-image-host.php:995
+#: ../tags/0.5.2/twitter-image-host.php:1001
+#: ../tags/0.5.3/twitter-image-host.php:1015
+msgid "View as large thumbnails"
+msgstr ""
+
+#: ../tags/0.5/twitter-image-host.php:997
+#: ../tags/0.5.1/twitter-image-host.php:997
+#: ../tags/0.5.2/twitter-image-host.php:1003
+#: ../tags/0.5.3/twitter-image-host.php:1017
+msgid "View as custom-sized thumbnails:"
+msgstr ""
+
+#: ../tags/0.5/twitter-image-host.php:1001
+#: ../tags/0.5.1/twitter-image-host.php:1001
+#: ../tags/0.5.2/twitter-image-host.php:1007
+#: ../tags/0.5.3/twitter-image-host.php:1021
+msgid "Width"
+msgstr ""
+
+#: ../tags/0.5/twitter-image-host.php:1003
+#: ../tags/0.5.1/twitter-image-host.php:1003
+#: ../tags/0.5.2/twitter-image-host.php:1009
+#: ../tags/0.5.3/twitter-image-host.php:1023
+msgid "Height"
+msgstr ""
+
+#: ../tags/0.5/twitter-image-host.php:1005
+#: ../tags/0.5.1/twitter-image-host.php:1005
+#: ../tags/0.5.2/twitter-image-host.php:1011
+#: ../tags/0.5.3/twitter-image-host.php:1025
+msgid "Crop to exact size"
+msgstr ""
+
+#: ../tags/0.5/twitter-image-host.php:1007
+#: ../tags/0.5.1/twitter-image-host.php:1007
+#: ../tags/0.5.2/twitter-image-host.php:1013
+#: ../tags/0.5.3/twitter-image-host.php:1027
+msgid "Fit within dimensions"
+msgstr ""
+
+#: ../tags/0.5/twitter-image-host.php:1011
+#: ../tags/0.5.1/twitter-image-host.php:1011
+#: ../tags/0.5.2/twitter-image-host.php:1017
+#: ../tags/0.5.3/twitter-image-host.php:1031
+msgid "Number of columns to display:"
+msgstr ""
+
+#: ../tags/0.5/twitter-image-host.php:1017
+#: ../tags/0.5.1/twitter-image-host.php:1017
+#: ../tags/0.5.2/twitter-image-host.php:1023
+#: ../tags/0.5.3/twitter-image-host.php:1037
+msgid "Use Lightbox, etc."
+msgstr ""
+
+#: ../tags/0.6/twitter-image-host.php:1052
+#: ../trunk/twitter-image-host.php:1051
+msgid "Twitter API keys:"
+msgstr ""
+
+#: ../tags/0.6/twitter-image-host.php:1058
+#: ../trunk/twitter-image-host.php:1057
+msgid "OAuth Consumer Key:"
+msgstr ""
+
+#: ../tags/0.6/twitter-image-host.php:1060
+#: ../trunk/twitter-image-host.php:1059
+msgid "OAuth Consumer Secret:"
+msgstr ""
+
+#: ../trunk/twitter-image-host.php:244
 msgid "Authentication error"
 msgstr ""
 
-#: twitter-image-host.php:267
+#: ../trunk/twitter-image-host.php:267
 msgid "Incorrect key"
 msgstr ""
 
-#: twitter-image-host.php:273
+#: ../trunk/twitter-image-host.php:273
 msgid "Invalid request"
 msgstr ""
 
-#: twitter-image-host.php:277
+#: ../trunk/twitter-image-host.php:277
 msgid "No image provided"
 msgstr ""
 
-#: twitter-image-host.php:303
+#: ../trunk/twitter-image-host.php:303
 msgid "Couldn't save uploaded file"
 msgstr ""
 
-#: twitter-image-host.php:311
+#: ../trunk/twitter-image-host.php:311
 msgid "Invalid image"
 msgstr ""
 
-#: twitter-image-host.php:351
+#: ../trunk/twitter-image-host.php:351
 #, php-format
 msgid "Tweet is too long by %d characters"
 msgstr ""
 
-#: twitter-image-host.php:359
+#: ../trunk/twitter-image-host.php:359
 msgid "Not logged in to Twitter"
 msgstr ""
 
-#: twitter-image-host.php:373
+#: ../trunk/twitter-image-host.php:373
 msgid "Twitter authentication error"
 msgstr ""
 
-#: twitter-image-host.php:375
+#: ../trunk/twitter-image-host.php:375
 #, php-format
 msgid "Error posting to Twitter (%s)"
 msgstr ""
 
-#: twitter-image-host.php:375
+#: ../trunk/twitter-image-host.php:375
 #, php-format
 msgid "response code %d"
 msgstr ""
 
-#: twitter-image-host.php:375
+#: ../trunk/twitter-image-host.php:375
 msgid "couldn't connect or unexpected response"
 msgstr ""
 
-#: twitter-image-host.php:520
+#: ../trunk/twitter-image-host.php:520
 msgid "There are no items to display"
 msgstr ""
 
-#: twitter-image-host.php:805
-msgid "Display images posted to Twitter"
-msgstr ""
-
-#: twitter-image-host.php:807
-#: twitter-image-host.php:841
-msgid "Twitter Images"
-msgstr ""
-
-#: twitter-image-host.php:960
-msgid "Title:"
-msgstr ""
-
-#: twitter-image-host.php:964
-msgid "Limit to images from Twitter account(s):"
-msgstr ""
-
-#: twitter-image-host.php:966
+#: ../trunk/twitter-image-host.php:965
 msgid "One or more Twitter accounts separated by commas.  Leave blank to show images from all Twitter accounts."
 msgstr ""
 
-#: twitter-image-host.php:969
-msgid "Number of items to show:"
-msgstr ""
-
-#: twitter-image-host.php:974
-msgid "View as square thumbnails"
-msgstr ""
-
-#: twitter-image-host.php:976
-msgid "View as proportional thumbnails"
-msgstr ""
-
-#: twitter-image-host.php:978
-msgid "View as large thumbnails"
-msgstr ""
-
-#: twitter-image-host.php:980
-msgid "View as custom-sized thumbnails:"
-msgstr ""
-
-#: twitter-image-host.php:982
+#: ../trunk/twitter-image-host.php:981
 msgid "Custom settings:"
 msgstr ""
 
-#: twitter-image-host.php:984
-msgid "Width"
-msgstr ""
-
-#: twitter-image-host.php:986
-msgid "Height"
-msgstr ""
-
-#: twitter-image-host.php:988
-msgid "Crop to exact size"
-msgstr ""
-
-#: twitter-image-host.php:990
-msgid "Fit within dimensions"
-msgstr ""
-
-#: twitter-image-host.php:994
-msgid "Number of columns to display:"
-msgstr ""
-
-#: twitter-image-host.php:996
+#: ../trunk/twitter-image-host.php:995
 msgid "Leave blank to not separate items into columns"
 msgstr ""
 
-#: twitter-image-host.php:1000
-msgid "Use Lightbox, etc."
-msgstr ""
-
-#: twitter-image-host.php:1001
+#: ../trunk/twitter-image-host.php:1000
 msgid "You must have Lightbox/Thickbox/etc installed for this to work"
 msgstr ""
 
-#: twitter-image-host.php:1039
-#: twitter-image-host.php:1188
+#: ../trunk/twitter-image-host.php:1038
+#: ../trunk/twitter-image-host.php:1253
 msgid "Twitter Image Host"
 msgstr ""
 
-#: twitter-image-host.php:1042
+#: ../trunk/twitter-image-host.php:1041
 msgid "The API access point for your Twitter Image Host installation (for use with Twitter for iOS, etc) is:"
 msgstr ""
 
-#: twitter-image-host.php:1052
-msgid "Twitter API keys:"
-msgstr ""
-
-#: twitter-image-host.php:1058
-msgid "OAuth Consumer Key:"
-msgstr ""
-
-#: twitter-image-host.php:1060
-msgid "OAuth Consumer Secret:"
-msgstr ""
-
-#: twitter-image-host.php:1066
+#: ../trunk/twitter-image-host.php:1065
 #, php-format
 msgid "You can register for these at %s."
 msgstr ""
 
-#: twitter-image-host.php:1078
-msgid "Image dimensions:"
-msgstr ""
-
-#: twitter-image-host.php:1080
+#: ../trunk/twitter-image-host.php:1079
 msgid "Maximum width"
 msgstr ""
 
-#: twitter-image-host.php:1082
+#: ../trunk/twitter-image-host.php:1081
 msgid "Maximum height"
 msgstr ""
 
-#: twitter-image-host.php:1084
+#: ../trunk/twitter-image-host.php:1083
 msgid "Link to full-size images"
 msgstr ""
 
-#: twitter-image-host.php:1089
-msgid "Override URL prefix:"
-msgstr ""
-
-#: twitter-image-host.php:1092
+#: ../trunk/twitter-image-host.php:1091
 msgid "If you have your own .htaccess rewrite rules in place, override the short URL prefix here (Advanced)"
 msgstr ""
 
-#: twitter-image-host.php:1101
-msgid "Save Changes"
-msgstr ""
-
-#: twitter-image-host.php:1125
+#: ../trunk/twitter-image-host.php:1124
 #, php-format
 msgid "Not set up. Please %sConfigure Twitter Image Host%s."
 msgstr ""
 
-#: twitter-image-host.php:1147
+#: ../trunk/twitter-image-host.php:1146
 #, php-format
 msgid "Could not connect to Twitter. Refresh the page or try again later. (Error code %d)"
 msgstr ""
 
-#: twitter-image-host.php:1193
+#: ../trunk/twitter-image-host.php:1192
 #, php-format
 msgid "Your image has been uploaded and the %stweet%s has been posted."
 msgstr ""
 
-#: twitter-image-host.php:1195
+#: ../trunk/twitter-image-host.php:1194
 msgid "Your image has been uploaded."
 msgstr ""
 
-#: twitter-image-host.php:1197
+#: ../trunk/twitter-image-host.php:1196
 #, php-format
 msgid "The URL is %s"
 msgstr ""
 
-#: twitter-image-host.php:1200
+#: ../trunk/twitter-image-host.php:1199
 msgid "Upload another:"
 msgstr ""
 
-#: twitter-image-host.php:1202
+#: ../trunk/twitter-image-host.php:1201
 msgid "There was an error:"
 msgstr ""
 
-#: twitter-image-host.php:1203
+#: ../trunk/twitter-image-host.php:1202
 msgid "Try again:"
 msgstr ""
 
-#: twitter-image-host.php:1207
+#: ../trunk/twitter-image-host.php:1206
 msgid "Upload New Image"
 msgstr ""
 
-#: twitter-image-host.php:1210
+#: ../trunk/twitter-image-host.php:1209
 msgid "Title"
 msgstr ""
 
-#: twitter-image-host.php:1212
+#: ../trunk/twitter-image-host.php:1211
 msgid "If tweeting too, leave blank to be the same as tweet message below."
 msgstr ""
 
-#: twitter-image-host.php:1216
+#: ../trunk/twitter-image-host.php:1215
 msgid "Image"
 msgstr ""
 
-#: twitter-image-host.php:1225
+#: ../trunk/twitter-image-host.php:1224
 msgid "Post to Twitter too, with optional message:"
 msgstr ""
 
-#: twitter-image-host.php:1232
+#: ../trunk/twitter-image-host.php:1231
 #, php-format
 msgid "%sConfigure Twitter Image Host%s, then log into Twitter to enable this feature."
 msgstr ""
 
-#: twitter-image-host.php:1234
+#: ../trunk/twitter-image-host.php:1233
 #, php-format
 msgid "%sLog in to Twitter%s to enable this feature."
 msgstr ""
 
-#: twitter-image-host.php:1240
+#: ../trunk/twitter-image-host.php:1239
 msgid "Post"
 msgstr ""
 

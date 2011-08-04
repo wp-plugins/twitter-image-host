@@ -1184,7 +1184,7 @@ function twitter_image_host_posts_page() {
     </style>
     
     <div class="wrap">
-    <h2><?php _e("Twitter Image Host", "twitter-image-host") ?></h2>
+    <h2><?php _e("Twitter Images", "twitter-image-host") ?></h2>
 
     <?php if ( $_REQUEST['url'] ) : ?>
         <p>
@@ -1250,8 +1250,8 @@ function twitter_image_host_posts_page() {
  * @since 0.1
  */
 function twitter_image_host_initialise_displayed_image_admin() {
-	add_options_page( 'Twitter Image Host', 'Twitter Image Host', 5, 'twitter_image_host_options', 'twitter_image_host_options_page' );
-	add_posts_page( 'Tweeted Images', 'Twitter Image Host', 5, 'twitter_image_host_posts', 'twitter_image_host_posts_page' );
+	add_options_page( __('Twitter Image Host', 'twitter-image-host'), __('Twitter Image Host', 'twitter-image-host'), 5, 'twitter_image_host_options', 'twitter_image_host_options_page' );
+	add_posts_page( __('Twitter Images', 'twitter-image-host'), __('Twitter Images', 'twitter-image-host'), 5, 'twitter_image_host_posts', 'twitter_image_host_posts_page' );
 }
 
 add_action( 'init', 'twitter_image_host_init' );
