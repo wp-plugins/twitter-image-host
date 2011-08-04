@@ -3,7 +3,7 @@
 Plugin Name: Twitter Image Host
 Plugin URI: http://atastypixel.com/blog/wordpress/plugins/twitter-image-host
 Description: Host Twitter images from your blog and keep your traffic, rather than using a service like Twitpic and losing your viewers
-Version: 0.6
+Version: 0.6.1
 Author: Michael Tyson
 Author URI: http://atastypixel.com/blog
 */
@@ -241,7 +241,7 @@ function twitter_image_host_server($command) {
         if ( empty($access_token) ) {
             delete_option('twitter_image_host_oauth_token_' . $current_user->user_login);
             delete_option('twitter_image_host_oauth_token_secret_' . $current_user->user_login);
-            twitter_image_host_error(NOT_LOGGED_IN, "Authentication error");
+            twitter_image_host_error(NOT_LOGGED_IN, __("Authentication error", "twitter-image-host"));
             return;
         }
         
@@ -264,17 +264,17 @@ function twitter_image_host_server($command) {
     }
     
     if ( $_REQUEST["key"] != get_option('twitter_image_host_access_key') ) {
-        twitter_image_host_error(INVALID_REQUEST, 'Incorrect key');
+        twitter_image_host_error(INVALID_REQUEST, __('Incorrect key', "twitter-image-host"));
         return;
     }
     
     // Sanity check
     if ( !in_array($command, array("upload", "uploadAndPost")) ) {
-        twitter_image_host_error(INVALID_REQUEST, 'Invalid request');
+        twitter_image_host_error(INVALID_REQUEST, __('Invalid request', "twitter-image-host"));
         return;
     }
     if ( !isset($_FILES['media']) || !$_FILES['media']['tmp_name'] || !file_exists($_FILES['media']['tmp_name']) ) {
-        twitter_image_host_error(IMAGE_NOT_FOUND, 'No image provided');
+        twitter_image_host_error(IMAGE_NOT_FOUND, __('No image provided', "twitter-image-host"));
         return;
     }
     
@@ -300,7 +300,7 @@ function twitter_image_host_server($command) {
         // Accept file
         if ( !file_exists(IMAGE_HOST_FOLDER) ) @mkdir(IMAGE_HOST_FOLDER, 0755);
         if ( !move_uploaded_file($_FILES['media']['tmp_name'], IMAGE_HOST_FOLDER."/$tag.$extension") ) {
-            twitter_image_host_error(INTERNAL_ERROR, "Couldn't place uploaded file");
+            twitter_image_host_error(INTERNAL_ERROR, __("Couldn't save uploaded file", "twitter-image-host"));
             return;
         }
     
@@ -308,7 +308,7 @@ function twitter_image_host_server($command) {
     
         if ( !$width ) {
             @unlink(IMAGE_HOST_FOLDER."/$tag.$extension");
-            twitter_image_host_error(INVALID_IMAGE, "Invalid image");
+            twitter_image_host_error(INVALID_IMAGE, __("Invalid image", "twitter-image-host"));
             return;
         }
     
@@ -348,7 +348,7 @@ function twitter_image_host_server($command) {
             @unlink(IMAGE_HOST_FOLDER."/$tag.$extension");
             @unlink(IMAGE_HOST_FOLDER."/$tag-full.$extension");
             @unlink(IMAGE_HOST_FOLDER."/$tag.meta");
-            twitter_image_host_error(TWEET_TOO_LONG, "Tweet is too long by $count characters");
+            twitter_image_host_error(TWEET_TOO_LONG, sprintf(__("Tweet is too long by %d characters", "twitter-image-host"), $count));
             return;
         }
         
@@ -356,7 +356,7 @@ function twitter_image_host_server($command) {
             @unlink(IMAGE_HOST_FOLDER."/$tag.$extension");
             @unlink(IMAGE_HOST_FOLDER."/$tag-full.$extension");
             @unlink(IMAGE_HOST_FOLDER."/$tag.meta");
-            twitter_image_host_error(NOT_LOGGED_IN, "Not logged in to Twitter");
+            twitter_image_host_error(NOT_LOGGED_IN, __("Not logged in to Twitter", "twitter-image-host"));
             return;
         }
         
@@ -370,9 +370,9 @@ function twitter_image_host_server($command) {
             
             if ( $connection->http_code == 401 ) {
                 delete_option('twitter_image_host_oauth_' . $current_user->user_login);
-                twitter_image_host_error(NOT_LOGGED_IN, 'Twitter authentication error');
+                twitter_image_host_error(NOT_LOGGED_IN, __('Twitter authentication error', 'twitter-image-host'));
             } else {
-                twitter_image_host_error(TWITTER_OFFLINE, "Error posting to Twitter (".($connection->http_code ? "response code ".$connection->http_code : "couldn't connect or unexpected response").")");
+                twitter_image_host_error(TWITTER_OFFLINE, sprintf(__("Error posting to Twitter (%s)", "twitter-image-host"), $connection->http_code ? sprintf(__("response code %d", "twitter-image-host"), $connection->http_code) : __("couldn't connect or unexpected response", "twitter-image-host")));
             }
             
             return;
@@ -517,7 +517,7 @@ function twitter_image_host_render_items($items, $options) {
     ?>
     <div class="twitter_image_host_images_container">
     <?php if ( count($items) == 0 ) : ?>
-        <p class="twitter_image_host_message">There are no items to display</p>
+        <p class="twitter_image_host_message"><?php _e("There are no items to display", "twitter-image-host") ?></p>
     <?php else : ?>
         <?php $count = 0; ?>
         <?php foreach ( $items as $item ) : ?>
@@ -794,7 +794,8 @@ function twitter_image_host_the_author_filter($author) {
  * @author Michael Tyson
  */
 function twitter_image_host_init() {
-    
+    load_plugin_textdomain( 'twitter-image-host', false, 'twitter-image-host/languages' );
+        
     // Add stylesheet
     wp_register_style('twitter-image-host-css', WP_PLUGIN_URL.'/twitter-image-host/style.css');
     wp_enqueue_style('twitter-image-host-css');
@@ -802,9 +803,9 @@ function twitter_image_host_init() {
     $options = get_option('twitter_image_host_widget');
     if ( !$options ) $options = array();
     
-    $widget_opts  = array('classname' => 'twitter_image_host_widget', 'description' => __('Display images posted to Twitter'));
+    $widget_opts  = array('classname' => 'twitter_image_host_widget', 'description' => __('Display images posted to Twitter', 'twitter-image-host'));
     $control_opts = array('id_base' => 'twitter_image_host_widget');
-    $name         = __('Twitter Images');
+    $name         = __('Twitter Images', 'twitter-image-host');
     
     if ( count($options) == 0 ) {
         // No widget copies - Register using a generic template
@@ -825,8 +826,6 @@ function twitter_image_host_init() {
         wp_register_sidebar_widget($identifier, $name, 'twitter_image_host_widget', $widget_opts, array('number' => $id));
         wp_register_widget_control($identifier, $name, 'twitter_image_host_widget_control', $control_opts, array('number' => $id));
     }
-
-
 }
 
 /**
@@ -838,7 +837,7 @@ function twitter_image_host_init() {
  **/
 function twitter_image_host_widget_shortcode_defaults() {
     return array(
-        'title'                   =>  __('Twitter Images'),
+        'title'                   =>  __('Twitter Images', 'twitter-image-host'),
         'count'                   => 10,
         'columns'                 => '',
         'view'                    => 'squares',
@@ -957,48 +956,48 @@ function twitter_image_host_widget_control($params=null) {
     
     ?>
     <p>
-        <label for="twitter_image_host_widget_<?php echo $id ?>_title"><?php _e('Title:') ?></label>
+        <label for="twitter_image_host_widget_<?php echo $id ?>_title"><?php _e('Title:', 'twitter-image-host') ?></label>
         <input type="text" id="twitter_image_host_widget_<?php echo $id ?>_title" name="twitter_image_host_widget[<?php echo $id ?>][title]" value="<?php echo $title ?>" />
     </p>
     <p>
-        <label for="twitter_image_host_widget_<?php echo $id ?>_title"><?php _e('Limit to images from Twitter account(s):') ?></label>
+        <label for="twitter_image_host_widget_<?php echo $id ?>_title"><?php _e('Limit to images from Twitter account(s):', 'twitter-image-host') ?></label>
         <input type="text" id="twitter_image_host_widget_<?php echo $id ?>_author" name="twitter_image_host_widget[<?php echo $id ?>][author]" value="<?php echo $author ?>" /><br/>
-        <small>One or more Twitter accounts separated by commas.  Leave blank to show images from all Twitter accounts.</small>
+        <small><?php _e("One or more Twitter accounts separated by commas.  Leave blank to show images from all Twitter accounts.", "twitter-image-host") ?></small>
     </p>
     <p>
-        <label for="twitter_image_host_widget_<?php echo $id ?>_count"><?php _e('Number of items to show:') ?></label>
+        <label for="twitter_image_host_widget_<?php echo $id ?>_count"><?php _e('Number of items to show:', 'twitter-image-host') ?></label>
         <input type="text" id="twitter_image_host_widget_<?php echo $id ?>_count" name="twitter_image_host_widget[<?php echo $id ?>][count]" size="4" value="<?php echo $count ?>" />
     </p>
     <p>
         <input type="radio" id="twitter_image_host_widget_<?php echo $id ?>_view_squares" name="twitter_image_host_widget[<?php echo $id ?>][view]" value="squares" <?php echo ($view=='squares'?'checked':'') ?> />
-        <label for="twitter_image_host_widget_<?php echo $id ?>_view_squares"><?php _e('View as square thumbnails') ?></label><br/>
+        <label for="twitter_image_host_widget_<?php echo $id ?>_view_squares"><?php _e('View as square thumbnails', 'twitter-image-host') ?></label><br/>
         <input type="radio" id="twitter_image_host_widget_<?php echo $id ?>_view_proportional" name="twitter_image_host_widget[<?php echo $id ?>][view]" value="proportional" <?php echo ($view=='proportional'?'checked':'') ?> />
-        <label for="twitter_image_host_widget_<?php echo $id ?>_view_proportional"><?php _e('View as proportional thumbnails') ?></label><br/>
+        <label for="twitter_image_host_widget_<?php echo $id ?>_view_proportional"><?php _e('View as proportional thumbnails', 'twitter-image-host') ?></label><br/>
         <input type="radio" id="twitter_image_host_widget_<?php echo $id ?>_view_large" name="twitter_image_host_widget[<?php echo $id ?>][view]" value="large" <?php echo ($view=='large'?'checked':'') ?> />
-        <label for="twitter_image_host_widget_<?php echo $id ?>_view_large"><?php _e('View as large thumbnails') ?></label><br/>
+        <label for="twitter_image_host_widget_<?php echo $id ?>_view_large"><?php _e('View as large thumbnails', 'twitter-image-host') ?></label><br/>
         <input type="radio" id="twitter_image_host_widget_<?php echo $id ?>_view_custom" name="twitter_image_host_widget[<?php echo $id ?>][view]" value="custom" <?php echo ($view=='custom'?'checked':'') ?> />
-        <label for="twitter_image_host_widget_<?php echo $id ?>_view_custom"><?php _e('View as custom-sized thumbnails:') ?></label><br/>
+        <label for="twitter_image_host_widget_<?php echo $id ?>_view_custom"><?php _e('View as custom-sized thumbnails:', 'twitter-image-host') ?></label><br/>
         <blockquote style="border-left: 1px dotted #aaa; padding-left:8px;">
-            <small><b>Custom settings:</b></small><br/>
+            <small><b><?php _e("Custom settings:", "twitter-image-host") ?></b></small><br/>
             <input type="text" id="twitter_image_host_widget_<?php echo $id ?>_custom_thumbnail_width" name="twitter_image_host_widget[<?php echo $id ?>][custom_thumbnail_width]" size="5" value="<?php echo $custom_thumbnail_width ?>" />
-            <label for="twitter_image_host_widget_<?php echo $id ?>_custom_thumbnail_width"><?php _e('Width') ?></label><br/>
+            <label for="twitter_image_host_widget_<?php echo $id ?>_custom_thumbnail_width"><?php _e('Width', 'twitter-image-host') ?></label><br/>
             <input type="text" id="twitter_image_host_widget_<?php echo $id ?>_custom_thumbnail_height" name="twitter_image_host_widget[<?php echo $id ?>][custom_thumbnail_height]" size="5" value="<?php echo $custom_thumbnail_height ?>" />
-            <label for="twitter_image_host_widget_<?php echo $id ?>_custom_thumbnail_height"><?php _e('Height') ?></label><br/>
+            <label for="twitter_image_host_widget_<?php echo $id ?>_custom_thumbnail_height"><?php _e('Height', 'twitter-image-host') ?></label><br/>
             <input type="radio" id="twitter_image_host_widget_<?php echo $id ?>_custom_thumbnail_crop_yes" name="twitter_image_host_widget[<?php echo $id ?>][custom_thumbnail_crop]" value="true" <?php echo ($custom_thumbnail_crop=='true'?'checked':'') ?> />
-            <label for="twitter_image_host_widget_<?php echo $id ?>_custom_thumbnail_crop_yes"><?php _e('Crop to exact size') ?></label><br/>
+            <label for="twitter_image_host_widget_<?php echo $id ?>_custom_thumbnail_crop_yes"><?php _e('Crop to exact size', 'twitter-image-host') ?></label><br/>
             <input type="radio" id="twitter_image_host_widget_<?php echo $id ?>_custom_thumbnail_crop_no" name="twitter_image_host_widget[<?php echo $id ?>][custom_thumbnail_crop]" value="false" <?php echo ($custom_thumbnail_crop!='true'?'checked':'') ?> />
-            <label for="twitter_image_host_widget_<?php echo $id ?>_custom_thumbnail_crop_no"><?php _e('Fit within dimensions') ?></label>
+            <label for="twitter_image_host_widget_<?php echo $id ?>_custom_thumbnail_crop_no"><?php _e('Fit within dimensions', 'twitter-image-host') ?></label>
         </blockquote>
     </p>
     <p>
-        <label for="twitter_image_host_widget_<?php echo $id ?>_columns"><?php _e('Number of columns to display:') ?></label>
+        <label for="twitter_image_host_widget_<?php echo $id ?>_columns"><?php _e('Number of columns to display:', 'twitter-image-host') ?></label>
         <input type="text" id="twitter_image_host_widget_<?php echo $id ?>_columns" name="twitter_image_host_widget[<?php echo $id ?>][columns]" size="4" value="<?php echo $columns ?>" /><br/>
-        <small>Leave blank to not separate items into columns</small>
+        <small><?php _e("Leave blank to not separate items into columns", "twitter-image-host") ?></small>
     </p>
     <p>
         <input type="checkbox" id="twitter_image_host_widget_<?php echo $id ?>_lightbox" name="twitter_image_host_widget[<?php echo $id ?>][lightbox]" <?php echo ($lightbox?'checked':'') ?> />
-        <label for="twitter_image_host_widget_<?php echo $id ?>_lightbox"><?php _e('Use Lightbox, etc.') ?></label><br/>
-        <small>You must have Lightbox/Thickbox/etc installed for this to work</small>
+        <label for="twitter_image_host_widget_<?php echo $id ?>_lightbox"><?php _e('Use Lightbox, etc.', 'twitter-image-host') ?></label><br/>
+        <small><?php _e("You must have Lightbox/Thickbox/etc installed for this to work", "twitter-image-host") ?></small>
     </p>
     
     <?php
@@ -1036,10 +1035,10 @@ function twitter_image_host_admin_init() {
 function twitter_image_host_options_page() {
     ?>
 	<div class="wrap">
-	<h2>Twitter Image Host</h2>
+	<h2><?php _e("Twitter Image Host", "twitter-image-host") ?></h2>
 	
 	<div style="margin: 30px; border: 1px solid #ccc; padding: 20px; width: 400px;">
-	    <p>The API access point for your Twitter Image Host installation (for use with Twitter for iOS, etc) is:</p>
+	    <p><?php _e("The API access point for your Twitter Image Host installation (for use with Twitter for iOS, etc) is:", "twitter-image-host") ?></p>
 	    <p><strong><?php bloginfo('url') ?>/twitter-image-host/upload?key=<?php echo get_option('twitter_image_host_access_key'); ?></strong></p>
     </div>
 	
@@ -1049,21 +1048,21 @@ function twitter_image_host_options_page() {
 	<table class="form-table">
     	
         <tr valign="top">
-            <th scope="row"><?php _e('Twitter API keys:')?></th>
+            <th scope="row"><?php _e('Twitter API keys:', 'twitter-image-host')?></th>
             <td>
                 <?php if ( !get_option('twitter_image_host_oauth_consumer_key') ) : ?>
                 <table><tr><td>
                 <?php endif; ?>
                 
-                <?php _e('OAuth Consumer Key:') ?><br />
+                <?php _e('OAuth Consumer Key:', 'twitter-image-host') ?><br />
                 <input type="text" id="twitter_image_host_oauth_consumer_key" name="twitter_image_host_oauth_consumer_key" value="<?php echo get_option('twitter_image_host_oauth_consumer_key') ?>" /><br />
-                <?php _e('OAuth Consumer Secret:') ?><br />
+                <?php _e('OAuth Consumer Secret:', 'twitter-image-host') ?><br />
                 <input type="text" id="twitter_image_host_oauth_consumer_secret" name="twitter_image_host_oauth_consumer_secret" value="<?php echo get_option('twitter_image_host_oauth_consumer_secret') ?>" /><br />
                 </td>
                 
                 <?php if ( !get_option('twitter_image_host_oauth_consumer_key') ) : ?>
                 </td><td>
-                You can register for these at <a href="http://twitter.com/apps/new">http://twitter.com/apps/new</a>.
+                <?php echo sprintf(__('You can register for these at %s.', 'twitter-image-host'), '<a href="http://twitter.com/apps/new">http://twitter.com/apps/new</a>') ?>
                     <ul>
                         <li>Application Type: <b>Browser</b></li>
                         <li>Callback URL: <b><?php echo bloginfo('url').'/twitter-image-host'?></b></li>
@@ -1075,21 +1074,21 @@ function twitter_image_host_options_page() {
         </tr>
     	
     	<tr valign="top">
-    		<th scope="row"><?php _e('Image dimensions:') ?></th>
+    		<th scope="row"><?php _e('Image dimensions:', 'twitter-image-host') ?></th>
     		<td>
-    		    Maximum width<br/>
+    		    <?php _e("Maximum width", "twitter-image-host") ?><br/>
     			<input type="text" name="twitter_image_host_max_width" value="<?php echo get_option('twitter_image_host_max_width', 500) ?>" /><br/>
-    			Maximum height<br/>
+    			<?php _e("Maximum height", "twitter-image-host") ?><br/>
     			<input type="text" name="twitter_image_host_max_height" value="<?php echo get_option('twitter_image_host_max_height', 500) ?>" /><br/>
-    			<input type="checkbox" name="twitter_image_host_link_thumbnails" <?php if ( get_option('twitter_image_host_link_thumbnails') ) echo "checked" ?>> Link to full-size images
+    			<input type="checkbox" name="twitter_image_host_link_thumbnails" <?php if ( get_option('twitter_image_host_link_thumbnails') ) echo "checked" ?>> <?php _e("Link to full-size images", "twitter-image-host") ?>
     		</td>
     	</tr>
     	
     	<tr valign="top">
-    		<th scope="row"><?php _e('Override URL prefix:') ?></th>
+    		<th scope="row"><?php _e('Override URL prefix:', 'twitter-image-host') ?></th>
     		<td>
     			<input type="text" name="twitter_image_host_override_url_prefix" value="<?php echo get_option('twitter_image_host_override_url_prefix') ?>" /><br/>
-                <small>If you have your own .htaccess rewrite rules in place, override the short URL prefix here (Advanced)</small>
+                <small><?php _e("If you have your own .htaccess rewrite rules in place, override the short URL prefix here (Advanced)", "twitter-image-host") ?></small>
     		</td>
     	</tr>
 	
@@ -1122,7 +1121,7 @@ function twitter_image_host_posts_page() {
         // Perform OAuth login
         if ( !get_option('twitter_image_host_oauth_consumer_key') ) {
             // Not setup
-            echo '<html><body>Not set up. Please <a href="'.get_admin_url().'options-general.php?page=twitter_image_host_options">Configure Twitter Image Host</a>.</body></html>';
+            echo sprintf(__('Not set up. Please %sConfigure Twitter Image Host%s.', 'twitter-image-host'), '<a href="'.get_admin_url().'options-general.php?page=twitter_image_host_options">', '</a>');
             return;
         }
         
@@ -1144,7 +1143,7 @@ function twitter_image_host_posts_page() {
             <p>Click <a href="<?php echo $url ?>">here</a> if you are not redirected within a few seconds.</p>
             <?php
         } else {
-            echo 'Could not connect to Twitter. Refresh the page or try again later. (Error code '.$connection->http_code.')';
+            echo sprintf(__('Could not connect to Twitter. Refresh the page or try again later. (Error code %d)', 'twitter-image-host'), $connection->http_code);
         }
         return;
     }
@@ -1185,28 +1184,35 @@ function twitter_image_host_posts_page() {
     </style>
     
     <div class="wrap">
-    <h2>Twitter Image Host</h2>
+    <h2><?php _e("Twitter Image Host", "twitter-image-host") ?></h2>
 
     <?php if ( $_REQUEST['url'] ) : ?>
-        <p>Your image has been uploaded<?php if ( $_REQUEST['statusid'] ) echo " and the <a href=\"http://twitter.com/".$access_token['screen_name']."/status/".$_REQUEST['statusid']."\">tweet</a> has been posted" ?>. The URL is <a href="<?php echo $_REQUEST['url']; ?>"><?php echo $_REQUEST['url']; ?></a>.
-
-        <p>Upload another:</p>
+        <p>
+        <?php if ( $_REQUEST['statusid'] )
+            echo sprintf(__("Your image has been uploaded and the %stweet%s has been posted.", "twitter-image-host"), "<a href=\"http://twitter.com/".$access_token['screen_name']."/status/".$_REQUEST['statusid']."\">", "</a>");
+        else
+            _e("Your image has been uploaded.", "twitter-image-host");
+        ?>
+        <?php echo sprintf(__("The URL is %s", "twitter-image-host"), '<a href="'. $_REQUEST['url']. '">'. $_REQUEST['url']. '</a>'); ?>
+        </p>
+        
+        <p><?php _e("Upload another:", "twitter-image-host") ?></p>
     <?php elseif ( $_REQUEST['error'] ) : ?>
-        <div class="error">There was an error: <?php echo $_REQUEST['error']; ?></div>
-        <p>Try again:</p>
+        <div class="error"><?php _e("There was an error:", "twitter-image-host") ?> <?php echo $_REQUEST['error']; ?></div>
+        <p><?php _e("Try again:", "twitter-image-host") ?></p>
     <?php endif; ?>
     
     <div class="form-wrap" style="width: 400px;">
-    <h3>Upload New Image</h3>
+    <h3><?php _e("Upload New Image", "twitter-image-host") ?></h3>
     <form method="post" enctype="multipart/form-data" action="<?php echo trailingslashit(get_option('siteurl')) ?>twitter-image-host/upload">
         <div class="form-field">
-        	<label for="title">Title</label> 
+        	<label for="title"><?php _e("Title", "twitter-image-host") ?></label> 
         	<input name="title" id="title" type="text" value="<?php echo $_REQUEST['title'] ?>" size="40" /> 
-        	<p>If tweeting too, leave blank to be the same as tweet message below.</p> 
+        	<p><?php _e("If tweeting too, leave blank to be the same as tweet message below.", "twitter-image-host") ?></p> 
         </div>
         
         <div class="form-field">
-        	<label for="media">Image</label> 
+        	<label for="media"><?php _e("Image", "twitter-image-host") ?></label> 
             <input type="file" id="media" name="media" />
         </div>
 
@@ -1215,22 +1221,22 @@ function twitter_image_host_posts_page() {
             $post_available = (get_option('twitter_image_host_oauth_consumer_key') && !empty($access_token));
             $available_characters = (140 - strlen(" ".(get_option('twitter_image_host_override_url_prefix') ? get_option('twitter_image_host_override_url_prefix') : get_option('siteurl')).'/12345')); 
             ?>
-            <input type="checkbox" style="width: auto; float: left; margin-right: 10px;" name="tweet" <?php if ( !$post_available ) echo 'disabled' ?> <?php echo ($_REQUEST['tweet'] ? 'checked="checked"' : '') ?> /> Post to Twitter too, with optional message:<br/>
+            <input type="checkbox" style="width: auto; float: left; margin-right: 10px;" name="tweet" <?php if ( !$post_available ) echo 'disabled' ?> <?php echo ($_REQUEST['tweet'] ? 'checked="checked"' : '') ?> /> <?php _e("Post to Twitter too, with optional message:", "twitter-image-host") ?><br/>
             <input type="text" name="message" <?php if ( !$post_available ) echo 'disabled' ?> value="<?php echo $_REQUEST['message'] ?>" id="tweet" /><span id="character-count"><?php echo $available_characters - (isset($_REQUEST['message']) ? strlen($_REQUEST['message']) : 0) ?></span>
             <script type="text/javascript" charset="utf-8">
               var available_characters = <?php echo $available_characters ?>;
             </script>
             <?php if ( !$post_available ) : ?>
                 <?php if ( !get_option('twitter_image_host_oauth_consumer_key') ) : ?>
-                    <p><i><a href="<?php echo get_admin_url(); ?>options-general.php?page=twitter_image_host_options">Configure Twitter Image Host</a>, then log into Twitter to enable this feature.</i></p>
+                    <p><i><?php echo sprintf(__("%sConfigure Twitter Image Host%s, then log into Twitter to enable this feature.", "twitter-image-host"), '<a href="'. get_admin_url(). 'options-general.php?page=twitter_image_host_options">', '</a>') ?></i></p>
                 <?php else: ?>
-                    <p><i><a href="<?php echo get_admin_url() ?>edit.php?page=twitter_image_host_posts&amp;login">Log in to Twitter</a> to enable this feature.</i></p>
+                    <p><i><?php echo sprintf(__("%sLog in to Twitter%s to enable this feature.", "twitter-image-host"), '<a href="'. get_admin_url(). 'edit.php?page=twitter_image_host_posts&amp;login">', '</a>') ?></i></p>
                 <?php endif; ?>
             <?php endif; ?>
         </div>
         <input type="hidden" name="key" value="<?php echo get_option('twitter_image_host_access_key') ?>" />
         <input type="hidden" name="from_admin" value="true" />
-        <input type="submit" class="button" value="Post" />
+        <input type="submit" class="button" value="<?php _e("Post", "twitter-image-host") ?>" />
     </form>
     </div>
     <?php

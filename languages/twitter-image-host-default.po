@@ -1,0 +1,273 @@
+msgid ""
+msgstr ""
+"Project-Id-Version: Twitter Image Host 0.6.1\n"
+"Report-Msgid-Bugs-To: \n"
+"POT-Creation-Date: 2011-08-04 18:18+0100\n"
+"PO-Revision-Date: \n"
+"Last-Translator: Michael Tyson <mike@tyson.id.au>\n"
+"Language-Team: Michael Tyson <michael@atastypixel.com>\n"
+"MIME-Version: 1.0\n"
+"Content-Type: text/plain; charset=UTF-8\n"
+"Content-Transfer-Encoding: 8bit\n"
+"X-Poedit-Language: English\n"
+"X-Poedit-SourceCharset: utf-8\n"
+"X-Poedit-KeywordsList: __;_e\n"
+"X-Poedit-Basepath: .\n"
+"X-Poedit-SearchPath-0: .\n"
+
+#: twitter-image-host.php:244
+msgid "Authentication error"
+msgstr ""
+
+#: twitter-image-host.php:267
+msgid "Incorrect key"
+msgstr ""
+
+#: twitter-image-host.php:273
+msgid "Invalid request"
+msgstr ""
+
+#: twitter-image-host.php:277
+msgid "No image provided"
+msgstr ""
+
+#: twitter-image-host.php:303
+msgid "Couldn't save uploaded file"
+msgstr ""
+
+#: twitter-image-host.php:311
+msgid "Invalid image"
+msgstr ""
+
+#: twitter-image-host.php:351
+#, php-format
+msgid "Tweet is too long by %d characters"
+msgstr ""
+
+#: twitter-image-host.php:359
+msgid "Not logged in to Twitter"
+msgstr ""
+
+#: twitter-image-host.php:373
+msgid "Twitter authentication error"
+msgstr ""
+
+#: twitter-image-host.php:375
+#, php-format
+msgid "Error posting to Twitter (%s)"
+msgstr ""
+
+#: twitter-image-host.php:375
+#, php-format
+msgid "response code %d"
+msgstr ""
+
+#: twitter-image-host.php:375
+msgid "couldn't connect or unexpected response"
+msgstr ""
+
+#: twitter-image-host.php:520
+msgid "There are no items to display"
+msgstr ""
+
+#: twitter-image-host.php:805
+msgid "Display images posted to Twitter"
+msgstr ""
+
+#: twitter-image-host.php:807
+#: twitter-image-host.php:841
+msgid "Twitter Images"
+msgstr ""
+
+#: twitter-image-host.php:960
+msgid "Title:"
+msgstr ""
+
+#: twitter-image-host.php:964
+msgid "Limit to images from Twitter account(s):"
+msgstr ""
+
+#: twitter-image-host.php:966
+msgid "One or more Twitter accounts separated by commas.  Leave blank to show images from all Twitter accounts."
+msgstr ""
+
+#: twitter-image-host.php:969
+msgid "Number of items to show:"
+msgstr ""
+
+#: twitter-image-host.php:974
+msgid "View as square thumbnails"
+msgstr ""
+
+#: twitter-image-host.php:976
+msgid "View as proportional thumbnails"
+msgstr ""
+
+#: twitter-image-host.php:978
+msgid "View as large thumbnails"
+msgstr ""
+
+#: twitter-image-host.php:980
+msgid "View as custom-sized thumbnails:"
+msgstr ""
+
+#: twitter-image-host.php:982
+msgid "Custom settings:"
+msgstr ""
+
+#: twitter-image-host.php:984
+msgid "Width"
+msgstr ""
+
+#: twitter-image-host.php:986
+msgid "Height"
+msgstr ""
+
+#: twitter-image-host.php:988
+msgid "Crop to exact size"
+msgstr ""
+
+#: twitter-image-host.php:990
+msgid "Fit within dimensions"
+msgstr ""
+
+#: twitter-image-host.php:994
+msgid "Number of columns to display:"
+msgstr ""
+
+#: twitter-image-host.php:996
+msgid "Leave blank to not separate items into columns"
+msgstr ""
+
+#: twitter-image-host.php:1000
+msgid "Use Lightbox, etc."
+msgstr ""
+
+#: twitter-image-host.php:1001
+msgid "You must have Lightbox/Thickbox/etc installed for this to work"
+msgstr ""
+
+#: twitter-image-host.php:1039
+#: twitter-image-host.php:1188
+msgid "Twitter Image Host"
+msgstr ""
+
+#: twitter-image-host.php:1042
+msgid "The API access point for your Twitter Image Host installation (for use with Twitter for iOS, etc) is:"
+msgstr ""
+
+#: twitter-image-host.php:1052
+msgid "Twitter API keys:"
+msgstr ""
+
+#: twitter-image-host.php:1058
+msgid "OAuth Consumer Key:"
+msgstr ""
+
+#: twitter-image-host.php:1060
+msgid "OAuth Consumer Secret:"
+msgstr ""
+
+#: twitter-image-host.php:1066
+#, php-format
+msgid "You can register for these at %s."
+msgstr ""
+
+#: twitter-image-host.php:1078
+msgid "Image dimensions:"
+msgstr ""
+
+#: twitter-image-host.php:1080
+msgid "Maximum width"
+msgstr ""
+
+#: twitter-image-host.php:1082
+msgid "Maximum height"
+msgstr ""
+
+#: twitter-image-host.php:1084
+msgid "Link to full-size images"
+msgstr ""
+
+#: twitter-image-host.php:1089
+msgid "Override URL prefix:"
+msgstr ""
+
+#: twitter-image-host.php:1092
+msgid "If you have your own .htaccess rewrite rules in place, override the short URL prefix here (Advanced)"
+msgstr ""
+
+#: twitter-image-host.php:1101
+msgid "Save Changes"
+msgstr ""
+
+#: twitter-image-host.php:1125
+#, php-format
+msgid "Not set up. Please %sConfigure Twitter Image Host%s."
+msgstr ""
+
+#: twitter-image-host.php:1147
+#, php-format
+msgid "Could not connect to Twitter. Refresh the page or try again later. (Error code %d)"
+msgstr ""
+
+#: twitter-image-host.php:1193
+#, php-format
+msgid "Your image has been uploaded and the %stweet%s has been posted."
+msgstr ""
+
+#: twitter-image-host.php:1195
+msgid "Your image has been uploaded."
+msgstr ""
+
+#: twitter-image-host.php:1197
+#, php-format
+msgid "The URL is %s"
+msgstr ""
+
+#: twitter-image-host.php:1200
+msgid "Upload another:"
+msgstr ""
+
+#: twitter-image-host.php:1202
+msgid "There was an error:"
+msgstr ""
+
+#: twitter-image-host.php:1203
+msgid "Try again:"
+msgstr ""
+
+#: twitter-image-host.php:1207
+msgid "Upload New Image"
+msgstr ""
+
+#: twitter-image-host.php:1210
+msgid "Title"
+msgstr ""
+
+#: twitter-image-host.php:1212
+msgid "If tweeting too, leave blank to be the same as tweet message below."
+msgstr ""
+
+#: twitter-image-host.php:1216
+msgid "Image"
+msgstr ""
+
+#: twitter-image-host.php:1225
+msgid "Post to Twitter too, with optional message:"
+msgstr ""
+
+#: twitter-image-host.php:1232
+#, php-format
+msgid "%sConfigure Twitter Image Host%s, then log into Twitter to enable this feature."
+msgstr ""
+
+#: twitter-image-host.php:1234
+#, php-format
+msgid "%sLog in to Twitter%s to enable this feature."
+msgstr ""
+
+#: twitter-image-host.php:1240
+msgid "Post"
+msgstr ""
+
