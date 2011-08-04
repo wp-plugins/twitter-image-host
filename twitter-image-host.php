@@ -236,6 +236,8 @@ function twitter_image_host_server($command) {
                                        get_option('twitter_image_host_oauth_token_' . $current_user->user_login),
                                        get_option('twitter_image_host_oauth_token_secret_' . $current_user->user_login));
 
+        $access_token = $connection->getAccessToken($_REQUEST['oauth_verifier']);
+
         if ( empty($access_token) ) {
             delete_option('twitter_image_host_oauth_token_' . $current_user->user_login);
             delete_option('twitter_image_host_oauth_token_secret_' . $current_user->user_login);
@@ -386,7 +388,7 @@ function twitter_image_host_server($command) {
 }
 
 function twitter_image_host_error($code, $message) {
-    if ( isset($_REQUEST['from_admin']) ) {
+    if ( isset($_REQUEST['from_admin']) || isset($_REQUEST['oauth_verifier']) ) {
         header('Location: ' . get_admin_url() . 'edit.php?page=twitter_image_host_posts&error=' . urlencode($message));
         return;
     }
@@ -394,7 +396,7 @@ function twitter_image_host_error($code, $message) {
 }
 
 function twitter_image_host_response($tag, $url, $userid=null, $statusid=null) {
-    if ( isset($_REQUEST['from_admin']) ) {
+    if ( isset($_REQUEST['from_admin']) || isset($_REQUEST['oauth_verifier']) ) {
         header('Location: ' . get_admin_url() . 'edit.php?page=twitter_image_host_posts&tag=' . urlencode($tag) . '&url=' . urlencode($url) . '&userid=' . urlencode($userid) . '&statusid=' . urlencode($statusid));
         return;
     }
