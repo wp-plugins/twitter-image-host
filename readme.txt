@@ -161,7 +161,7 @@ Creating a template to use this information is fairly straightforward if you hav
 
  1. On your server (via an FTP program, etc.), navigate to your current theme.  This will live within `wp-content/themes`.
  2. Copy an existing template - `single.php` is usually a good candidate - and call it `twitter-image-host.php`.
- 3. Open up `twitter_image_host.php`, and delete everything that looks post-related: This usually includes everything between
+ 3. Open up `twitter-image-host.php`, and delete everything that looks post-related: This usually includes everything between
     the `have_posts` call and the matching `endif`, and may include some other surrounding content like an 'Edit this post' link.
  4. Replace that which you have just deleted with something that uses the 'single entry' template tags above, like the following:
 
