@@ -248,7 +248,11 @@ function twitter_image_host_server($command) {
         update_option('twitter_image_host_oauth_' . $current_user->user_login, $access_token);
         delete_option('twitter_image_host_oauth_token_' . $current_user->user_login);
         delete_option('twitter_image_host_oauth_token_secret_' . $current_user->user_login);
-
+        
+        $map = get_option('twitter_image_host_author_twitter_account_map');
+        if ( !is_array($map) ) $map = array();
+        update_option('twitter_image_host_author_twitter_account_map', array_merge($map, array($access_token['screen_name'] => $current_user->ID)));
+        
         header('Location: ' . get_admin_url() . 'edit.php?page=twitter_image_host_posts');
         return;
     }
@@ -715,12 +719,21 @@ function twitter_image_host_template_redirect() {
  * Method to set up state correctly to display image
  */
 function twitter_image_host_initialise_displayed_image_state() {
-    global $post, $wp_query, $posts, $comments, $__displayed_twitter_image;
+    global $post, $wp_query, $posts, $comments, $authordata, $__displayed_twitter_image;
+    
+    $map = get_option('twitter_image_host_author_twitter_account_map');
+    if ( is_array($map) ) {
+        $author = $map[$__displayed_twitter_image->author];
+        if ( $author ) {
+            $authordata = get_userdata($author);
+        }
+    }
+    if ( !$author ) $author = 0;
     
     // Prepare a pseudo post
     $post = new StdClass;
     $post->ID = $__displayed_twitter_image->numeric_id;
-    $post->post_author = 0;
+    $post->post_author = $author;
     $post->post_date = date( 'Y-m-d H:i:s', $__displayed_twitter_image->date );
     $post->post_content = the_twitter_image();
     $post->post_title = $__displayed_twitter_image->title;
@@ -737,6 +750,7 @@ function twitter_image_host_initialise_displayed_image_state() {
     $wp_query->post_count = 1;
     $wp_query->posts[0] = $post;
     $wp_query->is_404 = false;
+    $wp_query->is_page = false;
     
     $wp_query->is_single = true;
 }
@@ -745,9 +759,9 @@ function twitter_image_host_initialise_displayed_image_state() {
 // =   Filters to make it all work  =
 // ==================================
 
-function twitter_image_host_posts_filter($posts) {
+function twitter_image_host_posts_filter($posts, $query) {
     global $__displayed_twitter_image;
-    if ( !isset($__displayed_twitter_image) ) return $posts;
+    if ( !isset($__displayed_twitter_image) || $query->query_vars['pagename'] != $__displayed_twitter_image->id ) return $posts;
     
     // Inject pretend post
     $array = array_merge((array)$posts, array($__displayed_twitter_image->post));
@@ -774,8 +788,8 @@ function twitter_image_host_author_link_filter($link, $authorid, $author_nicenam
 }
 
 function twitter_image_host_the_author_filter($author) {
-    global $__displayed_twitter_image;
-    if ( !isset($__displayed_twitter_image) ) return $author;
+    global $__displayed_twitter_image, $authordata;
+    if ( !isset($__displayed_twitter_image) || $authordata ) return $author;
     return $__displayed_twitter_image->author;
 }
 
@@ -1146,6 +1160,8 @@ function twitter_image_host_posts_page() {
             echo sprintf(__('Could not connect to Twitter. Refresh the page or try again later. (Error code %d)', 'twitter-image-host'), $connection->http_code);
         }
         return;
+    } else if ( isset($_REQUEST['logout']) ) {
+        delete_option('twitter_image_host_oauth_' . $current_user->user_login);
     }
     
     $access_token = get_option('twitter_image_host_oauth_' . $current_user->user_login);
@@ -1232,6 +1248,8 @@ function twitter_image_host_posts_page() {
                 <?php else: ?>
                     <p><i><?php echo sprintf(__("%sLog in to Twitter%s to enable this feature.", "twitter-image-host"), '<a href="'. get_admin_url(). 'edit.php?page=twitter_image_host_posts&amp;login">', '</a>') ?></i></p>
                 <?php endif; ?>
+            <?php else: ?>
+                <p><i><?php echo sprintf(__("Logged in as %s. %sLogout%s", "twitter-image-host"), $access_token['screen_name'], '<a href="'. get_admin_url(). 'edit.php?page=twitter_image_host_posts&amp;logout">', '</a>') ?></i></p>
             <?php endif; ?>
         </div>
         <input type="hidden" name="key" value="<?php echo get_option('twitter_image_host_access_key') ?>" />
@@ -1261,7 +1279,7 @@ add_action( 'template_redirect', 'twitter_image_host_template_redirect' );
 add_action( 'admin_menu', 'twitter_image_host_initialise_displayed_image_admin' );
 add_action( 'admin_init', 'twitter_image_host_admin_init' );
 
-add_filter( 'the_posts', 'twitter_image_host_posts_filter' );
+add_filter( 'the_posts', 'twitter_image_host_posts_filter', 10, 2 );
 add_filter( 'page_link', 'twitter_image_host_post_link', 10, 2);
 add_filter( 'post_link', 'twitter_image_host_post_link', 10, 2);
 add_filter( 'edit_post_link', 'twitter_image_host_edit_post_link_filter', 10, 2 );

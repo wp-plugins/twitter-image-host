@@ -2,7 +2,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: Twitter Image Host 0.6.1\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2011-08-04 22:12+0100\n"
+"POT-Creation-Date: 2011-08-07 20:46+0100\n"
 "PO-Revision-Date: \n"
 "Last-Translator: Michael Tyson <mike@tyson.id.au>\n"
 "Language-Team: Michael Tyson <michael@atastypixel.com>\n"
@@ -167,17 +167,17 @@ msgid "Use Lightbox, etc."
 msgstr "Benutze Lightbox, etc."
 
 #: ../tags/0.6/twitter-image-host.php:1052
-#: ../trunk/twitter-image-host.php:1051
+#: ../trunk/twitter-image-host.php:1065
 msgid "Twitter API keys:"
 msgstr ""
 
 #: ../tags/0.6/twitter-image-host.php:1058
-#: ../trunk/twitter-image-host.php:1057
+#: ../trunk/twitter-image-host.php:1071
 msgid "OAuth Consumer Key:"
 msgstr ""
 
 #: ../tags/0.6/twitter-image-host.php:1060
-#: ../trunk/twitter-image-host.php:1059
+#: ../trunk/twitter-image-host.php:1073
 msgid "OAuth Consumer Secret:"
 msgstr ""
 
@@ -185,170 +185,175 @@ msgstr ""
 msgid "Authentication error"
 msgstr "Fehler bei der Anmeldung"
 
-#: ../trunk/twitter-image-host.php:267
+#: ../trunk/twitter-image-host.php:271
 msgid "Incorrect key"
 msgstr "Falschen Schlüssel"
 
-#: ../trunk/twitter-image-host.php:273
+#: ../trunk/twitter-image-host.php:277
 msgid "Invalid request"
 msgstr ""
 
-#: ../trunk/twitter-image-host.php:277
+#: ../trunk/twitter-image-host.php:281
 msgid "No image provided"
 msgstr "Kein Bild zum Upload vorhanden"
 
-#: ../trunk/twitter-image-host.php:303
+#: ../trunk/twitter-image-host.php:307
 msgid "Couldn't save uploaded file"
 msgstr "Datei konnte nicht gespeichert werden"
 
-#: ../trunk/twitter-image-host.php:311
+#: ../trunk/twitter-image-host.php:315
 msgid "Invalid image"
 msgstr "Ungültiges Bild"
 
-#: ../trunk/twitter-image-host.php:351
+#: ../trunk/twitter-image-host.php:355
 #, php-format
 msgid "Tweet is too long by %d characters"
 msgstr "Tweet ist %d Zeichen zu lang"
 
-#: ../trunk/twitter-image-host.php:359
+#: ../trunk/twitter-image-host.php:363
 msgid "Not logged in to Twitter"
 msgstr "Nicht mit Twitter verbunden"
 
-#: ../trunk/twitter-image-host.php:373
+#: ../trunk/twitter-image-host.php:377
 msgid "Twitter authentication error"
 msgstr "Twitter, Fehler bei der Anmeldung"
 
-#: ../trunk/twitter-image-host.php:375
+#: ../trunk/twitter-image-host.php:379
 #, php-format
 msgid "Error posting to Twitter (%s)"
 msgstr "Fehler (%s) beim posten an Twitter"
 
-#: ../trunk/twitter-image-host.php:375
+#: ../trunk/twitter-image-host.php:379
 #, php-format
 msgid "response code %d"
 msgstr "Rückmelde-Code %d"
 
-#: ../trunk/twitter-image-host.php:375
+#: ../trunk/twitter-image-host.php:379
 msgid "couldn't connect or unexpected response"
 msgstr "Keine Verbindung oder unerwartete Rückmeldung"
 
-#: ../trunk/twitter-image-host.php:520
+#: ../trunk/twitter-image-host.php:524
 msgid "There are no items to display"
 msgstr "Keine Bilder zur Anzeige vorhanden"
 
-#: ../trunk/twitter-image-host.php:965
+#: ../trunk/twitter-image-host.php:979
 msgid "One or more Twitter accounts separated by commas.  Leave blank to show images from all Twitter accounts."
 msgstr "Einen oder mehrer Twitter, mit Komma getrennt angeben. Eintrag leer lassen um alle Twitter accounts anzuzeigen"
 
-#: ../trunk/twitter-image-host.php:981
+#: ../trunk/twitter-image-host.php:995
 msgid "Custom settings:"
 msgstr "Benutzereinstellungen"
 
-#: ../trunk/twitter-image-host.php:995
+#: ../trunk/twitter-image-host.php:1009
 msgid "Leave blank to not separate items into columns"
 msgstr "Leer belassen wenn keine Anordnung in Spalten erfolgen soll"
 
-#: ../trunk/twitter-image-host.php:1000
+#: ../trunk/twitter-image-host.php:1014
 msgid "You must have Lightbox/Thickbox/etc installed for this to work"
 msgstr "Es muss Lightbos/Thickbox installiert sein."
 
-#: ../trunk/twitter-image-host.php:1038
-#: ../trunk/twitter-image-host.php:1253
+#: ../trunk/twitter-image-host.php:1052
+#: ../trunk/twitter-image-host.php:1271
 msgid "Twitter Image Host"
 msgstr ""
 
-#: ../trunk/twitter-image-host.php:1041
+#: ../trunk/twitter-image-host.php:1055
 msgid "The API access point for your Twitter Image Host installation (for use with Twitter for iOS, etc) is:"
 msgstr "Der Zugangspunkt zur Twitter Image Host Installation über Twitter füriOS, etc. lautet:"
 
-#: ../trunk/twitter-image-host.php:1065
+#: ../trunk/twitter-image-host.php:1079
 #, php-format
 msgid "You can register for these at %s."
 msgstr "Die Registrierung kann bei %s erfolgen"
 
-#: ../trunk/twitter-image-host.php:1079
+#: ../trunk/twitter-image-host.php:1093
 msgid "Maximum width"
 msgstr "Maximale Breite"
 
-#: ../trunk/twitter-image-host.php:1081
+#: ../trunk/twitter-image-host.php:1095
 msgid "Maximum height"
 msgstr "Maximale Höhe"
 
-#: ../trunk/twitter-image-host.php:1083
+#: ../trunk/twitter-image-host.php:1097
 msgid "Link to full-size images"
 msgstr "Link zum Original-Bild"
 
-#: ../trunk/twitter-image-host.php:1091
+#: ../trunk/twitter-image-host.php:1105
 msgid "If you have your own .htaccess rewrite rules in place, override the short URL prefix here (Advanced)"
 msgstr "Wenn eine eigene .htaccess Datei genutzt wird können rewrite rules zur Verkürung der URL genutzt werden (erfahrene Benutzer)"
 
-#: ../trunk/twitter-image-host.php:1124
+#: ../trunk/twitter-image-host.php:1138
 #, php-format
 msgid "Not set up. Please %sConfigure Twitter Image Host%s."
 msgstr "Konfiguration ist nicht erfolgt. Bitte %sConfigure Twitter Image Host%s ausführen"
 
-#: ../trunk/twitter-image-host.php:1146
+#: ../trunk/twitter-image-host.php:1160
 #, php-format
 msgid "Could not connect to Twitter. Refresh the page or try again later. (Error code %d)"
 msgstr "Konnte nicht mit Twitter verbinden. Refresh die Seite oder versuche es später erneut. (Fehler-Code %d)"
 
-#: ../trunk/twitter-image-host.php:1192
+#: ../trunk/twitter-image-host.php:1208
 #, php-format
 msgid "Your image has been uploaded and the %stweet%s has been posted."
 msgstr "Das Bild wurde gespeichert und der %stweet%s wurde verschickt."
 
-#: ../trunk/twitter-image-host.php:1194
+#: ../trunk/twitter-image-host.php:1210
 msgid "Your image has been uploaded."
 msgstr "Der Upload des Bilds war erfolgreich"
 
-#: ../trunk/twitter-image-host.php:1196
+#: ../trunk/twitter-image-host.php:1212
 #, php-format
 msgid "The URL is %s"
 msgstr "Die URL lautet: %s"
 
-#: ../trunk/twitter-image-host.php:1199
+#: ../trunk/twitter-image-host.php:1215
 msgid "Upload another:"
 msgstr "Lade ein weiteres Bild hoch:"
 
-#: ../trunk/twitter-image-host.php:1201
+#: ../trunk/twitter-image-host.php:1217
 msgid "There was an error:"
 msgstr "Ein Fehler ist aufgetreten:"
 
-#: ../trunk/twitter-image-host.php:1202
+#: ../trunk/twitter-image-host.php:1218
 msgid "Try again:"
 msgstr "Versuche es erneut:"
 
-#: ../trunk/twitter-image-host.php:1206
+#: ../trunk/twitter-image-host.php:1222
 msgid "Upload New Image"
 msgstr "Neues Bild hochladen"
 
-#: ../trunk/twitter-image-host.php:1209
+#: ../trunk/twitter-image-host.php:1225
 msgid "Title"
 msgstr "Titel"
 
-#: ../trunk/twitter-image-host.php:1211
+#: ../trunk/twitter-image-host.php:1227
 msgid "If tweeting too, leave blank to be the same as tweet message below."
 msgstr "Wenn gleichzeitig ein Tweet gesendet wird bitte diese Zeile leer lassen"
 
-#: ../trunk/twitter-image-host.php:1215
+#: ../trunk/twitter-image-host.php:1231
 msgid "Image"
 msgstr "Bild"
 
-#: ../trunk/twitter-image-host.php:1224
+#: ../trunk/twitter-image-host.php:1240
 msgid "Post to Twitter too, with optional message:"
 msgstr "Sende den Tweet mit folgender Nachricht:"
 
-#: ../trunk/twitter-image-host.php:1231
+#: ../trunk/twitter-image-host.php:1247
 #, php-format
 msgid "%sConfigure Twitter Image Host%s, then log into Twitter to enable this feature."
 msgstr "%sConfigure Twitter Image Host%s, dann log dich in deinen Twitter Account um diese Erweiterung zu aktivieren."
 
-#: ../trunk/twitter-image-host.php:1233
+#: ../trunk/twitter-image-host.php:1249
 #, php-format
 msgid "%sLog in to Twitter%s to enable this feature."
 msgstr "%sLog in to Twitter%s um die Funktion zu aktivieren."
 
-#: ../trunk/twitter-image-host.php:1239
+#: ../trunk/twitter-image-host.php:1252
+#, php-format
+msgid "Logged in as %s. %sLogout%s"
+msgstr ""
+
+#: ../trunk/twitter-image-host.php:1257
 msgid "Post"
 msgstr "Sende"
 
