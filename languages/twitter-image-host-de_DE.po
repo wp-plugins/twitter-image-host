@@ -351,7 +351,7 @@ msgstr "%sLog in to Twitter%s um die Funktion zu aktivieren."
 #: ../trunk/twitter-image-host.php:1252
 #, php-format
 msgid "Logged in as %s. %sLogout%s"
-msgstr ""
+msgstr "Angemeldet als %s. %sAbmelden%s"
 
 #: ../trunk/twitter-image-host.php:1257
 msgid "Post"

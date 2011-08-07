@@ -4,7 +4,7 @@ Donate link: http://atastypixel.com/blog/wordpress/plugins/twitter-image-host
 Tags: images,twitter,hosting
 Requires at least: 3.0
 Tested up to: 3.2.1
-Stable tag: 0.6
+Stable tag: 0.6.1
 
 Host Twitter images from your blog and keep your traffic, rather than using a service like Twitpic and losing your viewers.
 
@@ -241,7 +241,17 @@ Here's how:
   Then, it'll rewrite the request silently to the real Twitter Image Host URL, without the viewer seeing.
 3. In Twitter Image Host settings, set the 'Override URL Prefix' option to 'http://your-site.com/'
 
+== Credits ==
+
+German Translation: [Walter Güldenberg](http://mb.walter.silvergeeks.com/)
+
 == Changelog ==
+
+= 0.6.1 =
+
+ * Added automatic mapping between Twitter account and author (users prior to 0.6.1 must re-login to Twitter to take effect)
+ * Added German translation, thanks to [Walter Güldenberg](http://mb.walter.silvergeeks.com/)
+ * Improved internal query handling
 
 = 0.6 =
 
@@ -307,6 +317,9 @@ Here's how:
  * Initial release
  
 == Upgrade Notice ==
+
+= 0.6.1 =
+Introduces Twitter account to author mapping. Re-login to Twitter to take effect.
 
 = 0.6 =
 At last, a fix for authentication.  Tweeting from the web interface works again.  If you're using the plugin with
