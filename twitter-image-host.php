@@ -1076,7 +1076,7 @@ function twitter_image_host_options_page() {
                 
                 <?php if ( !get_option('twitter_image_host_oauth_consumer_key') ) : ?>
                 </td><td>
-                <?php echo sprintf(__('You can register for these at %s.', 'twitter-image-host'), '<a href="http://twitter.com/apps/new">http://twitter.com/apps/new</a>') ?>
+                <?php echo sprintf(__('You can register for these at %s.', 'twitter-image-host'), '<a href="https://dev.twitter.com/apps/new">https://dev.twitter.com/apps/new</a>') ?>
                     <ul>
                         <li>Application Type: <b>Browser</b></li>
                         <li>Callback URL: <b><?php echo bloginfo('url').'/twitter-image-host'?></b></li>
