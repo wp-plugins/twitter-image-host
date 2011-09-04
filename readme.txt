@@ -243,9 +243,14 @@ Here's how:
 
 == Credits ==
 
-German Translation: [Walter Güldenberg](http://mb.walter.silvergeeks.com/)
+German translation: [Walter Güldenberg](http://mb.walter.silvergeeks.com/)  
+Norwegian translation: [Rune Gulbrandsøy](http://rune.iblogger.no/)
 
 == Changelog ==
+
+= 0.6.2 =
+
+ * Added Norwegian translation, thanks to [Rune Gulbrandsøy](http://rune.iblogger.no/)
 
 = 0.6.1 =
 
