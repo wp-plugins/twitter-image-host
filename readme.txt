@@ -10,6 +10,8 @@ Host Twitter images from your blog and keep your traffic, rather than using a se
 
 == Description ==
 
+*See also [Twitter Image Host 2](http://atastypixel.com/blog/wordpress/plugins/twitter-image-host-2/), which stores images as actual WordPress posts, for more easy customisation and management. It can be run at the same time as Twitter Image Host, for easy migration.*
+
 Keep your traffic in the family!  Host Twitter images on your own site, with support for comments and trackbacks, image
 resizing and thumbnailing with Lightbox.
 
